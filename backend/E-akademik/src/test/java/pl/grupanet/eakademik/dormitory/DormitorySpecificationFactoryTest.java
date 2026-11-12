@@ -2,35 +2,26 @@ package pl.grupanet.eakademik.dormitory;
 
 import org.commons.DormitoryId;
 import org.commons.Name;
-import org.commons.SlotNumber;
 import org.junit.jupiter.api.Test;
-import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;
-import pl.grupanet.eakademik.dormitory.slots.SlotsCalculator;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class DormitorySpecificationFactoryTest {
 
     @Test
-    void shouldCreateDormitorySpecification() {
+    void shouldCreateDormitorySpecificationWithDefaultRoomSpecification() {
         DormitoryId dormitoryId = new DormitoryId(new Name("PK"), new Name("Dor1"));
-        ChooseSlotsCalculator calculator = createChooseSlotsCalculator();
         DormitorySpecificationFactory factory = new DormitorySpecificationFactory(
                 dormitoryId.getUniversityName().toString(),
                 dormitoryId.getDormitoryName().toString()
         );
 
-        factory.setChooseLaundrySlotsCalculator(calculator);
         DormitorySpecification specification = factory.create();
 
         assertEquals(dormitoryId, specification.dormitoryId());
-        assertEquals(calculator, specification.chooseLaundrySlotsCalculator());
+        assertEquals(SlotsRoomSpecification.defaultRoomSpecification, specification.slotsRoomSpecification());
     }
 
     @Test
@@ -47,26 +38,23 @@ class DormitorySpecificationFactoryTest {
     }
 
     @Test
-    void shouldCreateSpecificationWithNotNullCalculatorWhenNotSet() {
+    void shouldCreateSpecificationWithOverriddenRoomSpecification() {
         DormitoryId dormitoryId = new DormitoryId(new Name("PK"), new Name("Dor1"));
+        SlotsRoomSpecification customRoomSpecification = mock(SlotsRoomSpecification.class);
+
         DormitorySpecificationFactory factory = new DormitorySpecificationFactory(
                 dormitoryId.getUniversityName().toString(),
                 dormitoryId.getDormitoryName().toString()
-        );
+        ) {
+            @Override
+            public SlotsRoomSpecification buildSlotsRoomSpecification() {
+                return customRoomSpecification;
+            }
+        };
 
         DormitorySpecification specification = factory.create();
 
         assertEquals(dormitoryId, specification.dormitoryId());
-        assertNotNull(specification.chooseLaundrySlotsCalculator());
-    }
-
-    private static ChooseSlotsCalculator createChooseSlotsCalculator() {
-        ChooseSlotsCalculator calculator = mock(ChooseSlotsCalculator.class);
-        SlotsCalculator expectedSlotsCalculator = mock(SlotsCalculator.class);
-
-        when(expectedSlotsCalculator.generateSlotIds()).thenReturn(List.of(new SlotNumber(0)));
-        when(calculator.choose(any(LocalDateTime.class))).thenReturn(expectedSlotsCalculator);
-
-        return calculator;
+        assertEquals(customRoomSpecification, specification.slotsRoomSpecification());
     }
 }

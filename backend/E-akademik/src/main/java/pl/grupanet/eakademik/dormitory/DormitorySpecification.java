@@ -2,12 +2,12 @@ package pl.grupanet.eakademik.dormitory;
 
 import jakarta.annotation.Nonnull;
 import org.commons.DormitoryId;
-import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;
+import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
 
-public record DormitorySpecification(DormitoryId dormitoryId, ChooseSlotsCalculator chooseLaundrySlotsCalculator) {
+public record DormitorySpecification(DormitoryId dormitoryId, SlotsRoomSpecification slotsRoomSpecification) {
     public DormitorySpecification(@Nonnull final DormitoryId dormitoryId,
-                                  @Nonnull final ChooseSlotsCalculator chooseLaundrySlotsCalculator) {
+                                  @Nonnull final SlotsRoomSpecification slotsRoomSpecification) {
         this.dormitoryId = dormitoryId;
-        this.chooseLaundrySlotsCalculator = chooseLaundrySlotsCalculator;
+        this.slotsRoomSpecification = slotsRoomSpecification;
     }
 }
