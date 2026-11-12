@@ -26,11 +26,11 @@ class DormitorySpecificationFactoryTest {
                 dormitoryId.getDormitoryName().toString()
         );
 
-        factory.setChooseSlotsCalculator(calculator);
+        factory.setChooseLaundrySlotsCalculator(calculator);
         DormitorySpecification specification = factory.create();
 
         assertEquals(dormitoryId, specification.dormitoryId());
-        assertEquals(calculator, specification.chooseSlotsCalculator());
+        assertEquals(calculator, specification.chooseLaundrySlotsCalculator());
     }
 
     @Test
@@ -57,7 +57,7 @@ class DormitorySpecificationFactoryTest {
         DormitorySpecification specification = factory.create();
 
         assertEquals(dormitoryId, specification.dormitoryId());
-        assertNotNull(specification.chooseSlotsCalculator());
+        assertNotNull(specification.chooseLaundrySlotsCalculator());
     }
 
     private static ChooseSlotsCalculator createChooseSlotsCalculator() {

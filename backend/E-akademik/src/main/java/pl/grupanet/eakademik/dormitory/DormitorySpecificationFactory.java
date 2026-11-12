@@ -8,14 +8,14 @@ import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;
 public class DormitorySpecificationFactory {
     protected final DormitoryId dormitoryId;
     @Setter
-    protected ChooseSlotsCalculator chooseSlotsCalculator;
+    protected ChooseSlotsCalculator chooseLaundrySlotsCalculator;
 
     public DormitorySpecificationFactory(String universityName, String dormitoryName) {
         this.dormitoryId = new DormitoryId(new Name(universityName), new Name(dormitoryName));
-        this.chooseSlotsCalculator = ChooseSlotsCalculator.defaultChooseCalculator;
+        this.chooseLaundrySlotsCalculator = ChooseSlotsCalculator.defaultChooseCalculator;
     }
 
     public DormitorySpecification create() {
-        return new DormitorySpecification(dormitoryId, chooseSlotsCalculator);
+        return new DormitorySpecification(dormitoryId, chooseLaundrySlotsCalculator);
     }
 }
