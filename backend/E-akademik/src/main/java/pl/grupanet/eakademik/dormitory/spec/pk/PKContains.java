@@ -1,5 +1,14 @@
 package pl.grupanet.eakademik.dormitory.spec.pk;
 
-public class PKContains {
-    public static String universityName = "Politechnika Krakowska";
+import lombok.Getter;
+
+@Getter
+public enum PKContains {
+    POLITECHNIKA_KRAKOWSKA("Politechnika Krakowska");
+
+    private final String universityName;
+
+    PKContains(String universityName) {
+        this.universityName = universityName;
+    }
 }
