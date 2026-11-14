@@ -40,7 +40,7 @@ class AppUserRepositoryTest {
                 email,
                 "hashed-password",
                 new Name("Jan Kowalski"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("DS-3 Bartek")),
+                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
                 new RoomNumber("111B"),
                 Role.RESIDENT
         );
@@ -98,7 +98,7 @@ class AppUserRepositoryTest {
                 email,
                 "hashed-password",
                 new Name("Jan Kowalski"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("DS-3 Bartek")),
+                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
                 new RoomNumber("101A"),
                 Role.RESIDENT
         );
@@ -112,7 +112,7 @@ class AppUserRepositoryTest {
     @Test
     void shouldThrowExceptionWhenSavingDuplicateEmail() {
         Email email = new Email("duplicate@example.com");
-        DormitoryId dormitoryId = new DormitoryId(new Name("Politechnika Krakowska"), new Name("DS-3 Bartek"));
+        DormitoryId dormitoryId = new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek"));
 
         userRepository.save(new RegisteredUser(
                 UserId.generate(), email, "hash1", new Name("User One"), dormitoryId, new RoomNumber("101A"), Role.RESIDENT

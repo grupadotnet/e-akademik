@@ -48,7 +48,7 @@ class AuthControllerTest {
     void shouldRegisterResidentAndReturnCreated() throws Exception {
         RegisterResidentRequest request = new RegisterResidentRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "111B",
                 "Jan Kowalski",
                 "new.resident@example.com",
@@ -67,7 +67,7 @@ class AuthControllerTest {
     void shouldForbidStaffRegistrationWithoutAdminRole() throws Exception {
         RegisterStaffRequest request = new RegisterStaffRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "Anna Nowak",
                 "unauth.staff@example.com",
                 "password123"
@@ -84,7 +84,7 @@ class AuthControllerTest {
     void shouldForbidStaffRegistrationForResidentRole() throws Exception {
         RegisterStaffRequest request = new RegisterStaffRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "Anna Nowak",
                 "resident.tries.staff@example.com",
                 "password123"
@@ -101,7 +101,7 @@ class AuthControllerTest {
     void shouldRegisterStaffWhenAdminIsAuthenticated() throws Exception {
         RegisterStaffRequest request = new RegisterStaffRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "Anna Nowak",
                 "new.staff@example.com",
                 "password123"
@@ -119,7 +119,7 @@ class AuthControllerTest {
     void shouldLoginAndSetHttpOnlyJwtCookie() throws Exception {
         RegisterResidentRequest registerRequest = new RegisterResidentRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "102A",
                 "Jan Kowalski",
                 "login.user@example.com",
@@ -151,7 +151,7 @@ class AuthControllerTest {
                 new Email("admin@example.com"),
                 passwordEncoder.encode("adminpass123"),
                 new Name("Admin User"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("DS-3 Bartek")),
+                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
                 null,
                 Role.ADMIN
         ));
@@ -167,7 +167,7 @@ class AuthControllerTest {
 
         RegisterStaffRequest staffRequest = new RegisterStaffRequest(
                 "Politechnika Krakowska",
-                "DS-3 Bartek",
+                "Ds-3 Bartek",
                 "Staff Member",
                 "staff.by.cookie@example.com",
                 "password123"

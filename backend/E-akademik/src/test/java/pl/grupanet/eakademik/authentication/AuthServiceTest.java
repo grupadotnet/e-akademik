@@ -84,7 +84,7 @@ class AuthServiceTest {
         assertEquals("encoded-secret", saved.passwordHash());
         assertEquals(new Name("Jan Kowalski"), saved.fullName());
         assertEquals(dormitoryId, saved.dormitoryId());
-        assertEquals(new RoomNumber("308B"), saved.roomNumber());
+        assertEquals(new RoomNumber("222A"), saved.roomNumber());
         assertEquals(Role.RESIDENT, saved.role());
     }
 
