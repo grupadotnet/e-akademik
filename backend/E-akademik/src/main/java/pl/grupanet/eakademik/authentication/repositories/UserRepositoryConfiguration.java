@@ -6,8 +6,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UserRepositoryConfiguration {
 
+    private final SpringDataUserRepository repository;
+
+    UserRepositoryConfiguration(SpringDataUserRepository repository) {
+        this.repository = repository;
+    }
+
     @Bean
-    public UserRepository userRepository(SpringDataUserRepository repository) {
+    public UserRepository userRepository() {
         return new AppUserRepository(repository);
     }
 }
