@@ -5,10 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.naming.AuthenticationException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,5 +46,20 @@ class AuthController {
         cookie.setPath("/");
         cookie.setMaxAge(maxAgeSeconds);
         return cookie;
+    }
+
+    @ExceptionHandler({IllegalArgumentException.class, NullPointerException.class})
+    ResponseEntity<String> handleBadRequest(RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    ResponseEntity<String> handleConflict(UserAlreadyExistsException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<String> handleUnauthorized(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 }
