@@ -27,13 +27,13 @@ class DormitorySpecificationFactoryTest {
     @Test
     void shouldThrowExceptionWhenDormitoryIdIsNull() {
         assertThrows(NullPointerException.class, () -> {
-            new DormitorySpecificationFactory((String) null, null);
+            new DormitorySpecificationFactory(null, null);
         });
         assertThrows(NullPointerException.class, () -> {
             new DormitorySpecificationFactory("PK", null);
         });
         assertThrows(NullPointerException.class, () -> {
-            new DormitorySpecificationFactory((String) null, "Dor1");
+            new DormitorySpecificationFactory(null, "Dor1");
         });
     }
 
