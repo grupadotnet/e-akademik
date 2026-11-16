@@ -1,7 +1,7 @@
 package pl.grupanet.eakademik.authentication;
 
-import jakarta.servlet.http.Cookie;
 import org.commons.Email;
+import org.commons.Password;
 import org.commons.Role;
 import org.commons.UserId;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,7 +33,6 @@ class AuthServiceTest {
     private TokenService tokenService;
     private AuthService authService;
 
-
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
@@ -48,23 +46,16 @@ class AuthServiceTest {
                 authenticationManager,
                 tokenService
         );
-
     }
 
     @Test
     void shouldRegisterResidentWithEncodedPasswordAndResidentRole() {
-        RegisterResidentRequest request = new RegisterResidentRequest(
-                "Politechnika Krakowska",
-                "Ds-3 Bartek",
-                "222A",
-                "Jan Kowalski",
-                "Jan@Example.com",
-                "secret123"
-        );
-        when(userRepository.existsByEmail(new Email("jan@example.com"))).thenReturn(false);
+        Email email = new Email("Jan@Example.com");
+        Password password = new Password("secret123");
+        when(userRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
 
-        authService.registerResident(request);
+        authService.registerResident(email, password);
 
         ArgumentCaptor<RegisteredUser> userCaptor = ArgumentCaptor.forClass(RegisteredUser.class);
         verify(userRepository).save(userCaptor.capture());
@@ -77,17 +68,12 @@ class AuthServiceTest {
 
     @Test
     void shouldRegisterStaffWithEncodedPasswordAndStaffRole() {
-        RegisterStaffRequest request = new RegisterStaffRequest(
-                "Politechnika Krakowska",
-                "Ds-3 Bartek",
-                "Anna Nowak",
-                "staff@example.com",
-                "secret123"
-        );
-        when(userRepository.existsByEmail(new Email("staff@example.com"))).thenReturn(false);
+        Email email = new Email("staff@example.com");
+        Password password = new Password("secret123");
+        when(userRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
 
-        authService.registerStaff(request);
+        authService.registerStaff(email, password);
 
         ArgumentCaptor<RegisteredUser> userCaptor = ArgumentCaptor.forClass(RegisteredUser.class);
         verify(userRepository).save(userCaptor.capture());
@@ -100,38 +86,18 @@ class AuthServiceTest {
 
     @Test
     void shouldThrowExceptionWhenEmailAlreadyExists() {
-        RegisterResidentRequest request = new RegisterResidentRequest(
-                "Politechnika Krakowska",
-                "Ds-3 Bartek",
-                "101B",
-                "Jan Kowalski",
-                "jan@example.com",
-                "secret123"
-        );
-        when(userRepository.existsByEmail(new Email("jan@example.com"))).thenReturn(true);
+        Email email = new Email("jan@example.com");
+        Password password = new Password("secret123");
+        when(userRepository.existsByEmail(email)).thenReturn(true);
 
-        assertThrows(UserAlreadyExistsException.class, () -> authService.registerResident(request));
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPasswordIsTooShort() {
-        RegisterResidentRequest request = new RegisterResidentRequest(
-                "Politechnika Krakowska",
-                "Ds-3 Bartek",
-                "101A",
-                "Jan Kowalski",
-                "jan@example.com",
-                "short"
-        );
-
-        assertThrows(IllegalArgumentException.class, () -> authService.registerResident(request));
+        assertThrows(UserAlreadyExistsException.class, () -> authService.registerResident(email, password));
         verify(userRepository, never()).save(any());
     }
 
     @Test
     void shouldAuthenticateAndReturnJwtTokenOnLogin() {
         Email email = new Email("jan@example.com");
+        Password password = new Password("secret123");
         UserId userId = UserId.generate();
         RegisteredUser user = new RegisteredUser(
                 userId,
@@ -142,7 +108,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(tokenService.generateToken(userId, email, Role.RESIDENT)).thenReturn("jwt-token-value");
 
-        String token = authService.loginUser(new LoginRequest("Jan@Example.com", "secret123"));
+        String token = authService.loginUser(new Email("Jan@Example.com"), password);
 
         assertEquals("jwt-token-value", token);
         verify(authenticationManager).authenticate(
@@ -151,21 +117,22 @@ class AuthServiceTest {
     }
 
     @Test
-    void shouldThrowBadCredentialsWhenLoginPasswordIsBlank() {
-        assertThrows(BadCredentialsException.class, () ->
-                authService.loginUser(new LoginRequest("jan@example.com", "   "))
-        );
-        verify(authenticationManager, never()).authenticate(any());
+    void shouldThrowBadCredentialsWhenAuthenticationFails() {
+        Email email = new Email("jan@example.com");
+        Password password = new Password("wrongpass1");
+        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(BadCredentialsException.class, () -> authService.loginUser(email, password));
+        verify(tokenService, never()).generateToken(any(), any(), any());
     }
 
     @Test
-    void shouldCreateHttpOnlyJwtCookie() {
-        Cookie cookie = authService.createJwtCookie("jwt-token-value", 3600);
+    void shouldThrowBadCredentialsWhenUserNotFoundAfterAuthentication() {
+        Email email = new Email("missing@example.com");
+        Password password = new Password("secret123");
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertEquals("jwt_token", cookie.getName());
-        assertEquals("jwt-token-value", cookie.getValue());
-        assertTrue(cookie.isHttpOnly());
-        assertEquals("/", cookie.getPath());
-        assertEquals(3600, cookie.getMaxAge());
+        assertThrows(BadCredentialsException.class, () -> authService.loginUser(email, password));
+        verify(tokenService, never()).generateToken(any(), any(), any());
     }
 }

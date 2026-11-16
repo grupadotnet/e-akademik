@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.authentication;
 
-import jakarta.servlet.http.Cookie;
 import org.commons.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,71 +27,39 @@ class AuthService {
     }
 
     @Transactional
-    void registerResident(RegisterResidentRequest registerResidentRequest) {
-        registerUser(
-                registerResidentRequest.email(),
-                registerResidentRequest.password(),
-                Role.RESIDENT
-        );
+    void registerResident(Email email,  Password password) {
+        registerUser(email, password, Role.RESIDENT);
     }
 
     @Transactional
-    void registerStaff(RegisterStaffRequest registerStaffRequest) {
-        registerUser(
-                registerStaffRequest.email(),
-                registerStaffRequest.password(),
-                Role.STAFF
-        );
+    void registerStaff(Email email, Password password) {
+        registerUser(email, password, Role.STAFF);
     }
 
-    private void registerUser(
-            String email,
-            String password,
-            Role role
-    ) {
-        Email validEmail = new Email(email);
-
-        if(password == null || password.isBlank() || password.length() < 8) {
-            throw new IllegalArgumentException("Password length should be at least 8 characters");
-        }
-
-        if(userRepository.existsByEmail(validEmail)) {
-            throw new UserAlreadyExistsException(validEmail);
+    private void registerUser(Email email, Password password, Role role) {
+        if(userRepository.existsByEmail(email)) {
+            throw new UserAlreadyExistsException(email);
         }
 
         RegisteredUser user = new RegisteredUser(
                 UserId.generate(),
-                validEmail,
-                passwordEncoder.encode(password),
+                email,
+                passwordEncoder.encode(password.toString()),
                 role
         );
 
         userRepository.save(user);
     }
 
-    String loginUser(LoginRequest request) {
-        Email validEmail = new Email(request.email());
-
-        if (request.password() == null || request.password().isBlank()) {
-            throw new BadCredentialsException("Invalid credentials");
-        }
-
+    String loginUser(Email email, Password password) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(validEmail.toString(), request.password())
+                new UsernamePasswordAuthenticationToken(email.toString(), password.toString())
         );
 
-        RegisteredUser user = userRepository.findByEmail(validEmail)
+        RegisteredUser user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
         return tokenService.generateToken(user.id(), user.email(), user.role());
-    }
-
-    Cookie createJwtCookie(String token, int maxAgeSeconds) {
-        Cookie cookie = new Cookie("jwt_token", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAgeSeconds);
-        return cookie;
     }
 
 }

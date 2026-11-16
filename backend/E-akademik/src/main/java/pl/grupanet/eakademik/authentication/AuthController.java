@@ -2,6 +2,8 @@ package pl.grupanet.eakademik.authentication;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.commons.Email;
+import org.commons.Password;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,29 +15,39 @@ import org.springframework.security.core.AuthenticationException;
 @RequiredArgsConstructor
 class AuthController {
     private final AuthService authService;
+    private final CookieService cookieService;
 
     @PostMapping("/register/resident")
     ResponseEntity<Void> registerResident(@RequestBody RegisterResidentRequest registerResidentRequest) {
-        authService.registerResident(registerResidentRequest);
+        Email email = new Email(registerResidentRequest.email());
+        Password password = new Password(registerResidentRequest.password());
+
+        authService.registerResident(email, password);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/register/staff")
     ResponseEntity<Void> registerStaff(@RequestBody RegisterStaffRequest registerStaffRequest) {
-        authService.registerStaff(registerStaffRequest);
+        Email email = new Email(registerStaffRequest.email());
+        Password password = new Password(registerStaffRequest.password());
+
+        authService.registerStaff(email, password);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/login")
     ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpServletResponse) {
-        String token = authService.loginUser(loginRequest);
-        httpServletResponse.addCookie(authService.createJwtCookie(token, 60*60*24));
+        Email email = new Email(loginRequest.email());
+        Password password = new Password(loginRequest.password());
+
+        String token = authService.loginUser(email, password);
+        httpServletResponse.addCookie(cookieService.createJwtCookie(token, 60*60*24));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/logout")
     ResponseEntity<Void> logout(HttpServletResponse httpServletResponse) {
-        httpServletResponse.addCookie(authService.createJwtCookie(null, 0));
+        httpServletResponse.addCookie(cookieService.createJwtCookie(null, 0));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

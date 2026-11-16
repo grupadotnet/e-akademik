@@ -8,8 +8,7 @@ public class Name {
     private final String name;
 
     public Name(@NonNull final String name) {
-        String normalizedName = name.trim();
-        if(normalizedName.isEmpty()) throw new IllegalArgumentException("Name cannot be empty");
+        if(name.isEmpty()) throw new IllegalArgumentException("Name cannot be empty");
         this.name = name;
     }
 
