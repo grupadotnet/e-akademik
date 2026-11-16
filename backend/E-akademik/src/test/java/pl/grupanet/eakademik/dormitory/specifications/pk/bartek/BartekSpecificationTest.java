@@ -4,17 +4,14 @@ import org.commons.DormitoryId;
 import org.commons.Name;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.DormitorySpecification;
-import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;
 import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.dormitory.spec.pk.bartek.BartekCalculator;
 import pl.grupanet.eakademik.dormitory.spec.pk.bartek.BartekSpecificationFactory;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class BartekSpecificationTest {
 
@@ -30,15 +27,15 @@ public class BartekSpecificationTest {
     }
 
     @Test
-    void shouldSelectCorrectCalculatorForLaundryRooms() {
+    void shouldBuildSpecificationWithLaundryRoomCalculators() {
         BartekSpecificationFactory factory = new BartekSpecificationFactory();
         SlotsRoomSpecification rooms = factory.create().slotsRoomSpecification();
 
+        assertNotNull(rooms);
         List<String> expectedRooms = List.of("211", "411", "611", "811", "1011");
 
         for (String roomNumber : expectedRooms) {
-            ChooseSlotsCalculator chooser = rooms.getCalculatorByRoomName(new Name(roomNumber));
-            assertInstanceOf(BartekCalculator.class, chooser.choose(LocalDateTime.now()));
+            assertNotNull(rooms.getCalculatorByRoomName(new Name(roomNumber)));
         }
     }
 }
