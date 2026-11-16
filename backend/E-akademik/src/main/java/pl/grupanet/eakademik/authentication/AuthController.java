@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.authentication;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,22 +29,14 @@ class AuthController {
     @PostMapping("/login")
     ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpServletResponse) {
         String token = authService.loginUser(loginRequest);
-        httpServletResponse.addCookie(createJwtCookie(token, 60*60*24));
+        httpServletResponse.addCookie(authService.createJwtCookie(token, 60*60*24));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/logout")
     ResponseEntity<Void> logout(HttpServletResponse httpServletResponse) {
-        httpServletResponse.addCookie(createJwtCookie(null, 0));
+        httpServletResponse.addCookie(authService.createJwtCookie(null, 0));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    private Cookie createJwtCookie(String token, int maxAgeSeconds) {
-        Cookie cookie = new Cookie("jwt_token", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAgeSeconds);
-        return cookie;
     }
 
     @ExceptionHandler({IllegalArgumentException.class, NullPointerException.class})

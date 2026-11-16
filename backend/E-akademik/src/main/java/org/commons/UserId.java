@@ -1,12 +1,10 @@
 package org.commons;
 
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Objects;
 import java.util.UUID;
 
-@Getter
 public class UserId {
     private final UUID id;
 

@@ -1,13 +1,11 @@
 package org.commons;
 
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-@Getter
 public class Email {
     private final String email;
     private static final Pattern email_pattern = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");

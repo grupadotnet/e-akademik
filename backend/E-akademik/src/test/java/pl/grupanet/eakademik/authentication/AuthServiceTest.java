@@ -1,10 +1,8 @@
 package pl.grupanet.eakademik.authentication;
 
-import org.commons.DormitoryId;
+import jakarta.servlet.http.Cookie;
 import org.commons.Email;
-import org.commons.Name;
 import org.commons.Role;
-import org.commons.RoomNumber;
 import org.commons.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,14 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.grupanet.eakademik.authentication.jwt.TokenService;
 import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
-import pl.grupanet.eakademik.dormitory.DormitorySpecification;
-import pl.grupanet.eakademik.dormitory.repositories.DormitoryRepository;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,29 +31,24 @@ class AuthServiceTest {
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
-    private DormitoryRepository dormitoryRepository;
     private TokenService tokenService;
     private AuthService authService;
 
-    private DormitoryId dormitoryId;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         authenticationManager = mock(AuthenticationManager.class);
-        dormitoryRepository = mock(DormitoryRepository.class);
         tokenService = mock(TokenService.class);
 
         authService = new AuthService(
                 userRepository,
                 passwordEncoder,
                 authenticationManager,
-                dormitoryRepository,
                 tokenService
         );
 
-        dormitoryId = new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek"));
     }
 
     @Test
@@ -70,7 +61,6 @@ class AuthServiceTest {
                 "Jan@Example.com",
                 "secret123"
         );
-        when(dormitoryRepository.get(dormitoryId)).thenReturn(mock(DormitorySpecification.class));
         when(userRepository.existsByEmail(new Email("jan@example.com"))).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
 
@@ -82,14 +72,11 @@ class AuthServiceTest {
         RegisteredUser saved = userCaptor.getValue();
         assertEquals(new Email("jan@example.com"), saved.email());
         assertEquals("encoded-secret", saved.passwordHash());
-        assertEquals(new Name("Jan Kowalski"), saved.fullName());
-        assertEquals(dormitoryId, saved.dormitoryId());
-        assertEquals(new RoomNumber("222A"), saved.roomNumber());
         assertEquals(Role.RESIDENT, saved.role());
     }
 
     @Test
-    void shouldRegisterStaffWithNullRoomNumberAndStaffRole() {
+    void shouldRegisterStaffWithEncodedPasswordAndStaffRole() {
         RegisterStaffRequest request = new RegisterStaffRequest(
                 "Politechnika Krakowska",
                 "Ds-3 Bartek",
@@ -97,7 +84,6 @@ class AuthServiceTest {
                 "staff@example.com",
                 "secret123"
         );
-        when(dormitoryRepository.get(dormitoryId)).thenReturn(mock(DormitorySpecification.class));
         when(userRepository.existsByEmail(new Email("staff@example.com"))).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
 
@@ -107,24 +93,9 @@ class AuthServiceTest {
         verify(userRepository).save(userCaptor.capture());
 
         RegisteredUser saved = userCaptor.getValue();
-        assertNull(saved.roomNumber());
+        assertEquals(new Email("staff@example.com"), saved.email());
+        assertEquals("encoded-secret", saved.passwordHash());
         assertEquals(Role.STAFF, saved.role());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenDormitoryDoesNotExist() {
-        RegisterResidentRequest request = new RegisterResidentRequest(
-                "Unknown Uni",
-                "Unknown Dorm",
-                "101A",
-                "Jan Kowalski",
-                "jan@example.com",
-                "secret123"
-        );
-        when(dormitoryRepository.get(any())).thenThrow(new IllegalArgumentException("Dormitory does not exist"));
-
-        assertThrows(IllegalArgumentException.class, () -> authService.registerResident(request));
-        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -137,7 +108,6 @@ class AuthServiceTest {
                 "jan@example.com",
                 "secret123"
         );
-        when(dormitoryRepository.get(dormitoryId)).thenReturn(mock(DormitorySpecification.class));
         when(userRepository.existsByEmail(new Email("jan@example.com"))).thenReturn(true);
 
         assertThrows(UserAlreadyExistsException.class, () -> authService.registerResident(request));
@@ -167,9 +137,6 @@ class AuthServiceTest {
                 userId,
                 email,
                 "encoded-secret",
-                new Name("Jan Kowalski"),
-                dormitoryId,
-                new RoomNumber("101"),
                 Role.RESIDENT
         );
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
@@ -189,5 +156,16 @@ class AuthServiceTest {
                 authService.loginUser(new LoginRequest("jan@example.com", "   "))
         );
         verify(authenticationManager, never()).authenticate(any());
+    }
+
+    @Test
+    void shouldCreateHttpOnlyJwtCookie() {
+        Cookie cookie = authService.createJwtCookie("jwt-token-value", 3600);
+
+        assertEquals("jwt_token", cookie.getName());
+        assertEquals("jwt-token-value", cookie.getValue());
+        assertTrue(cookie.isHttpOnly());
+        assertEquals("/", cookie.getPath());
+        assertEquals(3600, cookie.getMaxAge());
     }
 }

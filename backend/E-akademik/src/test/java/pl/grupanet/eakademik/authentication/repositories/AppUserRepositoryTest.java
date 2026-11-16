@@ -1,10 +1,7 @@
 package pl.grupanet.eakademik.authentication.repositories;
 
-import org.commons.DormitoryId;
 import org.commons.Email;
-import org.commons.Name;
 import org.commons.Role;
-import org.commons.RoomNumber;
 import org.commons.UserId;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
@@ -17,7 +14,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,9 +35,6 @@ class AppUserRepositoryTest {
                 userId,
                 email,
                 "hashed-password",
-                new Name("Jan Kowalski"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
-                new RoomNumber("111B"),
                 Role.RESIDENT
         );
 
@@ -59,16 +52,13 @@ class AppUserRepositoryTest {
     }
 
     @Test
-    void shouldSaveAndFindStaffWithNullRoomNumber() {
+    void shouldSaveAndFindStaffByEmail() {
         UserId userId = UserId.generate();
         Email email = new Email("staff@example.com");
         RegisteredUser staff = new RegisteredUser(
                 userId,
                 email,
                 "hashed-password",
-                new Name("Anna Nowak"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
-                null,
                 Role.STAFF
         );
 
@@ -79,7 +69,7 @@ class AppUserRepositoryTest {
         Optional<RegisteredUser> found = userRepository.findByEmail(email);
 
         assertTrue(found.isPresent());
-        assertNull(found.get().roomNumber());
+        assertEquals(staff, found.get());
         assertEquals(Role.STAFF, found.get().role());
     }
 
@@ -97,9 +87,6 @@ class AppUserRepositoryTest {
                 UserId.generate(),
                 email,
                 "hashed-password",
-                new Name("Jan Kowalski"),
-                new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek")),
-                new RoomNumber("101A"),
                 Role.RESIDENT
         );
 
@@ -112,16 +99,15 @@ class AppUserRepositoryTest {
     @Test
     void shouldThrowExceptionWhenSavingDuplicateEmail() {
         Email email = new Email("duplicate@example.com");
-        DormitoryId dormitoryId = new DormitoryId(new Name("Politechnika Krakowska"), new Name("Ds-3 Bartek"));
 
         userRepository.save(new RegisteredUser(
-                UserId.generate(), email, "hash1", new Name("User One"), dormitoryId, new RoomNumber("101A"), Role.RESIDENT
+                UserId.generate(), email, "hash1", Role.RESIDENT
         ));
         entityManager.flush();
 
         assertThrows(ConstraintViolationException.class, () -> {
             userRepository.save(new RegisteredUser(
-                    UserId.generate(), email, "hash2", new Name("User Two"), dormitoryId, new RoomNumber("102B"), Role.RESIDENT
+                    UserId.generate(), email, "hash2", Role.RESIDENT
             ));
             entityManager.flush();
         });

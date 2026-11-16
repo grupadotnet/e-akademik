@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.commons.*;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 class AppUserRepository implements UserRepository {
@@ -13,17 +14,12 @@ class AppUserRepository implements UserRepository {
     @Override
     public RegisteredUser save(RegisteredUser user) {
 
-        String roomNumber = user.roomNumber() != null ? user.roomNumber().toString() : null;
 
         UserEntity entity = UserEntity.builder()
-                .id(user.id().getId())
-                .fullName(user.fullName().toString())
+                .id(UUID.fromString(user.id().toString()))
                 .email(user.email().toString())
                 .password( user.passwordHash())
                 .role(user.role())
-                .universityName(user.dormitoryId().getUniversityName().toString())
-                .roomNumber(roomNumber)
-                .dormitoryName(user.dormitoryId().getDormitoryName().toString())
                 .build();
 
         return toRegisteredUser(repository.save(entity));
@@ -36,7 +32,7 @@ class AppUserRepository implements UserRepository {
 
     @Override
     public Optional<RegisteredUser> findById(UserId id) {
-        return repository.findById(id.getId()).map(this::toRegisteredUser);
+        return repository.findById(UUID.fromString(id.toString())).map(this::toRegisteredUser);
     }
 
     @Override
@@ -49,9 +45,6 @@ class AppUserRepository implements UserRepository {
                 new UserId(entity.getId()),
                 new Email(entity.getEmail()),
                 entity.getPassword(),
-                new Name(entity.getFullName()),
-                new DormitoryId(new Name(entity.getUniversityName()), new Name(entity.getDormitoryName())),
-                entity.getRoomNumber() != null ? new RoomNumber(entity.getRoomNumber()) : null,
                 entity.getRole()
         );
     }

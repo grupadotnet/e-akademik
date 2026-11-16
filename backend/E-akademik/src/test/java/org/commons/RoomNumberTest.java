@@ -17,7 +17,6 @@ class RoomNumberTest {
         RoomNumber roomNumber = new RoomNumber("111A");
 
         assertEquals(expectedValue, roomNumber.toString());
-        assertEquals(expectedValue, roomNumber.getRoomNumber());
     }
 
     @Test

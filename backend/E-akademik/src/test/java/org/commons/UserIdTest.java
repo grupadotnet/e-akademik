@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,11 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserIdTest {
 
     @Test
-    void shouldReturnCorrectUuidAndStringRepresentation() {
+    void shouldReturnCorrectStringRepresentation() {
         UUID uuid = UUID.randomUUID();
         UserId userId = new UserId(uuid);
 
-        assertEquals(uuid, userId.getId());
         assertEquals(uuid.toString(), userId.toString());
     }
 
@@ -30,7 +30,7 @@ class UserIdTest {
         UserId id = UserId.generate();
 
         assertNotNull(id);
-        assertNotNull(id.getId());
+        assertDoesNotThrow(() -> UUID.fromString(id.toString()));
     }
 
     @Test

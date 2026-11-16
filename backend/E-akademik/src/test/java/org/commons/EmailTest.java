@@ -17,7 +17,6 @@ class EmailTest {
         Email email = new Email(expectedValue);
 
         assertEquals(expectedValue, email.toString());
-        assertEquals(expectedValue, email.getEmail());
     }
 
     @Test
