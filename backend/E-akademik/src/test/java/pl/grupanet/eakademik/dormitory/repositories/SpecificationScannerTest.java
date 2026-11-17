@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.reflections.Reflections;
 import pl.grupanet.eakademik.dormitory.DormitorySpecificationFactory;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,19 +16,19 @@ import static org.mockito.Mockito.*;
 class SpecificationScannerTest {
     public static class ValidFactory extends DormitorySpecificationFactory {
         public ValidFactory() {
-            super("Pk", "dor");
+            super(UniversityNames.POLITECHNIKA_KRAKOWSKA, "dor");
         }
     }
 
     public static class NoDefaultConstructorFactory extends DormitorySpecificationFactory {
         public NoDefaultConstructorFactory(String dummyParam) {
-            super(dummyParam, dummyParam);
+            super(UniversityNames.POLITECHNIKA_KRAKOWSKA, dummyParam);
         }
     }
 
     public static class ThrowingConstructorFactory extends DormitorySpecificationFactory {
         public ThrowingConstructorFactory() {
-            super("PK", "dor");
+            super(UniversityNames.POLITECHNIKA_KRAKOWSKA, "dor");
             throw new IllegalStateException("Simulated exception");
         }
     }

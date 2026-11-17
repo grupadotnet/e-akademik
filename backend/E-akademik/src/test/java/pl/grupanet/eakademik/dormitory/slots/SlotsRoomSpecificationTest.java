@@ -82,4 +82,38 @@ class SlotsRoomSpecificationTest {
         assertEquals(ChooseSlotsCalculator.defaultChooseCalculator, retrievedCalculator);
     }
 
+    @Test
+    void shouldBeEqualWhenInstancesHaveSameRoomsAndCalculators() {
+        ChooseSlotsCalculator calc = mock(ChooseSlotsCalculator.class);
+
+        SlotsRoomSpecification spec1 = new SlotsRoomSpecification.Builder()
+                .add("211", calc)
+                .add("411", calc)
+                .build();
+        SlotsRoomSpecification spec2 = new SlotsRoomSpecification.Builder()
+                .add("211", calc)
+                .add("411", calc)
+                .build();
+
+        assertEquals(spec1, spec2);
+        assertEquals(spec1.hashCode(), spec2.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenInstancesHaveDifferentRooms() {
+        ChooseSlotsCalculator calc = mock(ChooseSlotsCalculator.class);
+
+        SlotsRoomSpecification spec1 = new SlotsRoomSpecification.Builder()
+                .add("211", calc)
+                .build();
+        SlotsRoomSpecification spec2 = new SlotsRoomSpecification.Builder()
+                .add("211", calc)
+                .add("411", calc)
+                .build();
+
+        assertNotEquals(spec1, spec2);
+        assertNotEquals(null, spec1);
+        assertNotEquals(spec1, new Object());
+    }
+
 }

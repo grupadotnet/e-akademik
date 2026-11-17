@@ -1,14 +1,16 @@
-    package pl.grupanet.eakademik.dormitory.spec.pk;
+package pl.grupanet.eakademik.dormitory.spec.pk;
 
-    import lombok.Getter;
+public enum UniversityNames {
+    POLITECHNIKA_KRAKOWSKA("Politechnika Krakowska");
 
-    @Getter
-    public enum UniversityNames {
-        POLITECHNIKA_KRAKOWSKA("Politechnika Krakowska");
+    private final String universityName;
 
-        private final String universityName;
-
-        UniversityNames(String universityName) {
-            this.universityName = universityName;
-        }
+    UniversityNames(String universityName) {
+        this.universityName = universityName;
     }
+
+    @Override
+    public String toString() {
+        return universityName;
+    }
+}

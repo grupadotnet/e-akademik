@@ -123,6 +123,43 @@ class ChooseSlotsCalculatorTest {
         assertDoesNotThrow(builder::build);
     }
 
+    @Test
+    void shouldBeEqualWhenInstancesHaveSameValues() {
+        SlotsCalculator defaultCalc = createSlotsCalculator();
+        SlotsCalculator mondayCalc = createSlotsCalculator();
+
+        ChooseSlotsCalculator chooser1 = new ChooseSlotsCalculator.Builder(defaultCalc)
+                .add(DayOfWeek.MONDAY, mondayCalc)
+                .build();
+        ChooseSlotsCalculator chooser2 = new ChooseSlotsCalculator.Builder(defaultCalc)
+                .add(DayOfWeek.MONDAY, mondayCalc)
+                .build();
+
+        assertEquals(chooser1, chooser2);
+        assertEquals(chooser1.hashCode(), chooser2.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenInstancesHaveDifferentValues() {
+        SlotsCalculator calc1 = createSlotsCalculator();
+        SlotsCalculator calc2 = new SlotsCalculator(
+                new TimeSlot(LocalTime.of(8, 0), LocalTime.of(16, 0)),
+                Duration.ofMinutes(45),
+                Duration.ofMinutes(15)
+        );
+
+        ChooseSlotsCalculator baseChooser = new ChooseSlotsCalculator.Builder(calc1).build();
+        ChooseSlotsCalculator diffDefaultChooser = new ChooseSlotsCalculator.Builder(calc2).build();
+        ChooseSlotsCalculator diffDayChooser = new ChooseSlotsCalculator.Builder(calc1)
+                .add(DayOfWeek.MONDAY, calc2)
+                .build();
+
+        assertNotEquals(baseChooser, diffDefaultChooser);
+        assertNotEquals(baseChooser, diffDayChooser);
+        assertNotEquals(null, baseChooser);
+        assertNotEquals(baseChooser, new Object());
+    }
+
     private static SlotsCalculator createSlotsCalculator() {
         return new SlotsCalculator(new TimeSlot(LocalTime.of(1, 0),
                 LocalTime.of(20, 0)),

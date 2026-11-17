@@ -4,6 +4,7 @@ import org.commons.DormitoryId;
 import org.commons.Name;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -12,9 +13,12 @@ class DormitorySpecificationFactoryTest {
 
     @Test
     void shouldCreateDormitorySpecificationWithDefaultRoomSpecification() {
-        DormitoryId dormitoryId = new DormitoryId(new Name("PK"), new Name("Dor1"));
+        DormitoryId dormitoryId = new DormitoryId(
+                new Name(UniversityNames.POLITECHNIKA_KRAKOWSKA.toString()),
+                new Name("Dor1")
+        );
         DormitorySpecificationFactory factory = new DormitorySpecificationFactory(
-                dormitoryId.getUniversityName().toString(),
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 dormitoryId.getDormitoryName().toString()
         );
 
@@ -30,7 +34,7 @@ class DormitorySpecificationFactoryTest {
             new DormitorySpecificationFactory(null, null);
         });
         assertThrows(NullPointerException.class, () -> {
-            new DormitorySpecificationFactory("PK", null);
+            new DormitorySpecificationFactory(UniversityNames.POLITECHNIKA_KRAKOWSKA, null);
         });
         assertThrows(NullPointerException.class, () -> {
             new DormitorySpecificationFactory(null, "Dor1");
@@ -39,11 +43,14 @@ class DormitorySpecificationFactoryTest {
 
     @Test
     void shouldCreateSpecificationWithOverriddenRoomSpecification() {
-        DormitoryId dormitoryId = new DormitoryId(new Name("PK"), new Name("Dor1"));
+        DormitoryId dormitoryId = new DormitoryId(
+                new Name(UniversityNames.POLITECHNIKA_KRAKOWSKA.toString()),
+                new Name("Dor1")
+        );
         SlotsRoomSpecification customRoomSpecification = mock(SlotsRoomSpecification.class);
 
         DormitorySpecificationFactory factory = new DormitorySpecificationFactory(
-                dormitoryId.getUniversityName().toString(),
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 dormitoryId.getDormitoryName().toString()
         ) {
             @Override

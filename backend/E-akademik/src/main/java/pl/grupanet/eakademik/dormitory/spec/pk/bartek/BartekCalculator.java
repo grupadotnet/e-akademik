@@ -1,17 +1,17 @@
-    package pl.grupanet.eakademik.dormitory.spec.pk.bartek;
+package pl.grupanet.eakademik.dormitory.spec.pk.bartek;
 
-    import org.commons.TimeSlot;
-    import pl.grupanet.eakademik.dormitory.slots.SlotsCalculator;
+import org.commons.TimeSlot;
+import pl.grupanet.eakademik.dormitory.slots.SlotsCalculator;
 
-    import java.time.Duration;
-    import java.time.LocalTime;
+import java.time.Duration;
+import java.time.LocalTime;
 
-    public class BartekCalculator extends SlotsCalculator {
-        public BartekCalculator() {
-            super(
-                    new TimeSlot(LocalTime.of(7, 0), LocalTime.of(23, 0)),
-                    Duration.ofHours(2),
-                    Duration.ZERO
-            );
-        }
+public class BartekCalculator extends SlotsCalculator {
+    public BartekCalculator() {
+        super(
+                new TimeSlot(LocalTime.of(7, 0), LocalTime.of(23, 0)),
+                Duration.ofHours(2),
+                Duration.ZERO
+        );
     }
+}
