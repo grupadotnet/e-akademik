@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class ChooseSlotsCalculator {
     public static ChooseSlotsCalculator defaultChooseCalculator = new Builder(
@@ -65,5 +66,18 @@ public class ChooseSlotsCalculator {
             if (!slotsCalculators.getOrDefault(value, defaultCalculator).generateSlotIds().isEmpty()) return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChooseSlotsCalculator that = (ChooseSlotsCalculator) o;
+        return Objects.equals(defaultCalculator, that.defaultCalculator) && Objects.equals(slotsCalculators, that.slotsCalculators);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(defaultCalculator, slotsCalculators);
     }
 }

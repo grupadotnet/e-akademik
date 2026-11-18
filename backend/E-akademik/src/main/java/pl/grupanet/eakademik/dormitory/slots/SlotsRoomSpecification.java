@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.commons.Name;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class SlotsRoomSpecification {
     public static SlotsRoomSpecification defaultRoomSpecification = new Builder().
@@ -32,6 +33,19 @@ public class SlotsRoomSpecification {
 
     public ChooseSlotsCalculator getCalculatorByRoomName(@NonNull Name roomName) {
         return calculatorsByRoomName.get(roomName);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SlotsRoomSpecification that = (SlotsRoomSpecification) o;
+        return Objects.equals(calculatorsByRoomName, that.calculatorsByRoomName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(calculatorsByRoomName);
     }
 
 }
