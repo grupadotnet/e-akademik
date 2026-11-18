@@ -27,7 +27,8 @@ public class BartekSpecificationTest {
     @Test
     void shouldBuildSpecificationWithLaundryRoomCalculators() {
         BartekSpecificationFactory factory = new BartekSpecificationFactory();
-        SlotsRoomSpecification rooms = factory.create().slotsRoomSpecification();
+        DormitorySpecification dormitorySpecification = factory.create();
+        SlotsRoomSpecification rooms = dormitorySpecification.slotsRoomSpecification();
 
         assertEquals(new BartekLaundryRoomFactory().create(), rooms);
     }
