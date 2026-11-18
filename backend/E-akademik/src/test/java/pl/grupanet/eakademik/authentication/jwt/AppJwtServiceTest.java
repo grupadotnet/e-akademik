@@ -1,0 +1,64 @@
+package pl.grupanet.eakademik.authentication.jwt;
+
+import org.commons.Email;
+import org.commons.Role;
+import org.commons.UserId;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class AppJwtServiceTest {
+
+    private static final String TEST_SECRET = "dGhpcy1pcy1hLXRlc3Qtc2VjcmV0LWtleS1mb3ItdW5pdC10ZXN0cy0yNTYtYml0cw==";
+    private static final long EXPIRATION_MS = 60_000L;
+
+    private AppJwtService jwtService;
+    private UserId userId;
+    private Email email;
+
+    @BeforeEach
+    void setUp() {
+        jwtService = new AppJwtService(TEST_SECRET, EXPIRATION_MS);
+        userId = UserId.generate();
+        email = new Email("student@example.com");
+    }
+
+    @Test
+    void shouldGenerateTokenAndExtractEmail() {
+        String token = jwtService.generateToken(userId, email, Role.RESIDENT);
+
+        assertNotNull(token);
+        assertEquals(email, jwtService.extractEmail(token));
+    }
+
+    @Test
+    void shouldReturnTrueWhenTokenIsValidForExpectedEmail() {
+        String token = jwtService.generateToken(userId, email, Role.RESIDENT);
+
+        assertTrue(jwtService.isTokenValid(token, email));
+    }
+
+    @Test
+    void shouldReturnFalseWhenEmailDoesNotMatchTokenSubject() {
+        String token = jwtService.generateToken(userId, email, Role.RESIDENT);
+
+        assertFalse(jwtService.isTokenValid(token, new Email("other@example.com")));
+    }
+
+    @Test
+    void shouldReturnFalseWhenTokenIsExpired() {
+        AppJwtService expiredJwtService = new AppJwtService(TEST_SECRET, -1_000L);
+        String expiredToken = expiredJwtService.generateToken(userId, email, Role.RESIDENT);
+
+        assertFalse(jwtService.isTokenValid(expiredToken, email));
+    }
+
+    @Test
+    void shouldReturnFalseWhenTokenIsMalformed() {
+        assertFalse(jwtService.isTokenValid("not.a.valid.jwt", email));
+    }
+}
