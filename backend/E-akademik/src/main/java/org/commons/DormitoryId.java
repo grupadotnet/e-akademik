@@ -2,29 +2,29 @@ package org.commons;
 
 import lombok.Getter;
 import lombok.NonNull;
-
 import java.util.Objects;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
 @Getter
 public class DormitoryId {
     public static class Builder {
-        private final String universityName;
+        private final UniversityNames universityName;
         private final String dormitoryName;
 
-        public Builder(@NonNull String universityName, @NonNull String dormitoryName) {
+        public Builder(@NonNull UniversityNames universityName, @NonNull String dormitoryName) {
             this.universityName = universityName;
             this.dormitoryName = dormitoryName;
         }
 
         public DormitoryId build() {
-            return new DormitoryId(new Name(universityName), new Name(dormitoryName));
+            return new DormitoryId(universityName, new Name(dormitoryName));
         }
     }
 
-    private final Name universityName;
+    private final UniversityNames universityName;
     private final Name dormitoryName;
 
-    public DormitoryId(@NonNull final Name universityName, @NonNull final Name dormitoryName) {
+    public DormitoryId(@NonNull final UniversityNames universityName, @NonNull final Name dormitoryName) {
         this.universityName = universityName;
         this.dormitoryName = dormitoryName;
     }

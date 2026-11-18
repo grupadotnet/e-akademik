@@ -19,7 +19,7 @@ public class BartekSpecificationTest {
         DormitorySpecification dormitorySpecification = factory.create();
 
         assertEquals(new DormitoryId(
-                new Name(UniversityNames.POLITECHNIKA_KRAKOWSKA.toString()),
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 new Name("Ds-3 Bartek")
         ), dormitorySpecification.dormitoryId());
     }
