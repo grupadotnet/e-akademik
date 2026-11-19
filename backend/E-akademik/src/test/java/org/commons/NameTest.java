@@ -1,6 +1,8 @@
 package org.commons;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -21,9 +23,15 @@ class NameTest {
         assertThrows(NullPointerException.class, () -> new Name(null));
     }
 
-    @Test
-    void shouldThrowExceptionWhenInstantiatedWithEmptyString() {
-        assertThrows(IllegalArgumentException.class, () -> new Name(""));
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   ", "\t", "\n", "\t\n\r"})
+    void shouldThrowExceptionWhenInstantiatedWithBlankString(String blankName) {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new Name(blankName)
+        );
+
+        assertEquals("Name cannot be blank", exception.getMessage());
     }
 
     @Test
@@ -49,5 +57,13 @@ class NameTest {
 
         assertNotEquals(null, name);
         assertNotEquals("Alice", name);
+    }
+
+    @Test
+    void shouldAllowNonBlankStringWithLeadingAndTrailingSpacesWithoutTrimming() {
+        String expectedValue = " Alice ";
+        Name name = new Name(expectedValue);
+
+        assertEquals(expectedValue, name.toString());
     }
 }
