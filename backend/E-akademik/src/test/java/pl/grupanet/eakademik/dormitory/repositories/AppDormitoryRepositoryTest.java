@@ -1,5 +1,5 @@
 package pl.grupanet.eakademik.dormitory.repositories;
-
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 import org.commons.DormitoryId;
 import org.commons.Name;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ class AppDormitoryRepositoryTest {
     @BeforeEach
     void setUp() {
         repository = new AppDormitoryRepository();
-        dormitoryId = new DormitoryId(new Name("MIT"), new Name("Simmons"));
+        dormitoryId = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Simmons"));
 
         specification = mock(DormitorySpecification.class);
         when(specification.dormitoryId()).thenReturn(dormitoryId);
@@ -47,7 +47,7 @@ class AppDormitoryRepositoryTest {
 
     @Test
     void shouldThrowExceptionWhenGettingNonExistentDormitorySpecification() {
-        DormitoryId nonExistentId = new DormitoryId(new Name("Harvard"), new Name("Baker"));
+        DormitoryId nonExistentId = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Baker"));
 
         assertThrows(IllegalArgumentException.class, () -> repository.get(nonExistentId));
     }

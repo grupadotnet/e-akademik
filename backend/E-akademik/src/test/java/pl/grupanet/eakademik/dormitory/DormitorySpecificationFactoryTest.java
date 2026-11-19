@@ -14,7 +14,7 @@ class DormitorySpecificationFactoryTest {
     @Test
     void shouldCreateDormitorySpecificationWithDefaultRoomSpecification() {
         DormitoryId dormitoryId = new DormitoryId(
-                new Name(UniversityNames.POLITECHNIKA_KRAKOWSKA.toString()),
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 new Name("Dor1")
         );
         DormitorySpecificationFactory factory = new DormitorySpecificationFactory(
@@ -44,7 +44,7 @@ class DormitorySpecificationFactoryTest {
     @Test
     void shouldCreateSpecificationWithOverriddenRoomSpecification() {
         DormitoryId dormitoryId = new DormitoryId(
-                new Name(UniversityNames.POLITECHNIKA_KRAKOWSKA.toString()),
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 new Name("Dor1")
         );
         SlotsRoomSpecification customRoomSpecification = mock(SlotsRoomSpecification.class);
