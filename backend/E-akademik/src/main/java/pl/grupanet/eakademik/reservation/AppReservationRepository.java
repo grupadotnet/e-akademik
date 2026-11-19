@@ -4,8 +4,8 @@ import lombok.NonNull;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.springframework.transaction.annotation.Transactional;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.entities.BaseReservationEntity;
 import pl.grupanet.eakademik.reservation.entities.BaseReservationJpaRepository;
 import pl.grupanet.eakademik.reservation.entities.ReservationEmbeddableId;
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class AppReservationRepository<E extends BaseReservationEntity> {
+class AppReservationRepository<E extends BaseReservationEntity> implements ReservationRepository {
     private final BaseReservationJpaRepository<E> jpaRepository;
     private final Supplier<E> entityFactory;
 
@@ -23,6 +23,7 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
         this.entityFactory = entityFactory;
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<TermSnapshot> findAllTermsForSlotAndDate(List<ReservationStatus> statuses, List<LocalDate> dates) {
         validateStatuses(statuses);
@@ -35,6 +36,7 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
                 .toList();
     }
 
+    @Override
     @Transactional
     public TermSnapshot reserve(@NonNull final ReservationId id,
                                 @NonNull final ResidentId residentId,
@@ -66,6 +68,7 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
         return reservedReservation.toDto();
     }
 
+    @Override
     @Transactional
     public TermSnapshot accept(@NonNull final ReservationId id,
                                @NonNull final ResidentId residentId,
@@ -98,6 +101,7 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
         return acceptedReservation.toDto();
     }
 
+    @Override
     @Transactional
     public TermSnapshot cancelByStaff(@NonNull final ReservationId id,
                                       @NonNull final ResidentId residentId,
@@ -118,6 +122,7 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
         return openReservation.toDto();
     }
 
+    @Override
     @Transactional
     public TermSnapshot cancelByOwner(@NonNull final ReservationId id,
                                       @NonNull final ResidentId residentId,
@@ -132,17 +137,16 @@ public class AppReservationRepository<E extends BaseReservationEntity> {
             throw new IllegalArgumentException("Cannot accept a reservation with status " + reservation.getStatus());
         }
 
-        OpenTerm openReservation = null ;
+        OpenTerm openReservation = null;
         if (reservation.getStatus() == ReservationStatus.RESERVED) {
             ReservedTerm reservedReservation = (ReservedTerm) reservation;
             openReservation = reservedReservation.cancel(residentId);
-        }
-        else if (reservation.getStatus() == ReservationStatus.ACCEPTED) {
+        } else if (reservation.getStatus() == ReservationStatus.ACCEPTED) {
             AcceptedTerm acceptedReservation = (AcceptedTerm) reservation;
             openReservation = acceptedReservation.cancel(residentId);
         }
 
-        if(openReservation == null)
+        if (openReservation == null)
             throw new IllegalArgumentException("Cannot cancel a reservation with status " + reservation.getStatus());
 
         jpaRepository.delete(entity);
