@@ -62,7 +62,7 @@ class AppReservationRepositoryTest {
         List<ReservationStatus> statuses = List.of(ReservationStatus.ACCEPTED);
         List<LocalDate> dates = List.of(reservationDate);
 
-        when(jpaRepository.findAllByStatusInAndReservationDateIn(statuses, dates))
+        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates))
                 .thenReturn(List.of(entity));
 
         List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(statuses, dates);
@@ -167,7 +167,7 @@ class AppReservationRepositoryTest {
         ReservationEmbeddableId embeddableId = ReservationEmbeddableId.from(reservationId, residentId, reservationDate);
         TestReservationEntity existingEntity = createEntity(reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null);
 
-        when(jpaRepository.findAllByStatusInAndReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
+        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
                 .thenReturn(List.of());
         when(jpaRepository.findById(embeddableId)).thenReturn(Optional.of(existingEntity));
 
@@ -187,7 +187,7 @@ class AppReservationRepositoryTest {
         ResidentId otherResident = new ResidentId(UUID.randomUUID());
         TestReservationEntity acceptedEntity = createEntity(reservationId, otherResident, reservationDate, ReservationStatus.ACCEPTED, staffId);
 
-        when(jpaRepository.findAllByStatusInAndReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
+        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
                 .thenReturn(List.of(acceptedEntity));
 
         assertThrows(
@@ -200,7 +200,7 @@ class AppReservationRepositoryTest {
     @Test
     void shouldThrowExceptionWhenAcceptingNonExistentReservation() {
         ReservationEmbeddableId embeddableId = ReservationEmbeddableId.from(reservationId, residentId, reservationDate);
-        when(jpaRepository.findAllByStatusInAndReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
+        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
                 .thenReturn(List.of());
         when(jpaRepository.findById(embeddableId)).thenReturn(Optional.empty());
 

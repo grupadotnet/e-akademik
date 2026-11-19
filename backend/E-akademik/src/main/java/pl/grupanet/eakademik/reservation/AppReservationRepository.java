@@ -31,7 +31,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
             return List.of();
         }
 
-        return jpaRepository.findAllByStatusInAndReservationDateIn(statuses, dates).stream()
+        return jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates).stream()
                 .map(this::toDto)
                 .toList();
     }
