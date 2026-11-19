@@ -14,6 +14,7 @@ class UserIdTest {
         UserId userId = new UserId(uuid);
 
         assertEquals(uuid.toString(), userId.toString());
+        assertEquals(uuid, userId.getIdAsUUID());
     }
 
     @Test

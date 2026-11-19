@@ -7,20 +7,48 @@ import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
+import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AcceptedReservationTest {
+class AcceptedTermTest {
 
     private ReservationId createDummyReservationId() {
         return new ReservationId(
                 new DormitoryId.Builder(
-                        UniversityNames.POLITECHNIKA_KRAKOWSKA,"sth")
+                        UniversityNames.POLITECHNIKA_KRAKOWSKA, "sth")
                         .build(),
                 new RoomNumber("A001"),
                 new SlotNumber(0));
+    }
+
+    @Test
+    void shouldBuildReservation() {
+        ReservationId reservationId = createDummyReservationId();
+        ResidentId ownerId = new ResidentId(UUID.randomUUID());
+        StaffId acceptedBy = new StaffId(UUID.randomUUID());
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+
+        assertEquals(acceptedReservation.getAcceptedId(), acceptedBy);
+        assertEquals(acceptedReservation.getOwnerId(), ownerId);
+        assertInstanceOf(Term.class, acceptedReservation);
+    }
+
+    @Test
+    void shouldCorrectCreateSnapshot() {
+        ReservationId reservationId = createDummyReservationId();
+        ResidentId ownerId = new ResidentId(UUID.randomUUID());
+        StaffId acceptedBy = new StaffId(UUID.randomUUID());
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+
+        TermSnapshot reservationSnapshot = acceptedReservation.toDto();
+        TermSnapshot expecedReservationSnapshot = new TermSnapshot(
+                reservationId, ReservationStatus.ACCEPTED, ownerId, acceptedBy
+        );
+        assertEquals(reservationSnapshot, expecedReservationSnapshot);
     }
 
     @Test
@@ -28,12 +56,12 @@ class AcceptedReservationTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedReservation acceptedReservation = new AcceptedReservation(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
 
-        OpenReservation result = acceptedReservation.cancel(ownerId);
+        OpenTerm result = acceptedReservation.cancel(ownerId);
 
         assertNotNull(result);
-        assertInstanceOf(OpenReservation.class, result);
+        assertInstanceOf(OpenTerm.class, result);
     }
 
     @Test
@@ -41,7 +69,7 @@ class AcceptedReservationTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedReservation acceptedReservation = new AcceptedReservation(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
 
         ResidentId differentResidentId = new ResidentId(UUID.randomUUID());
 
@@ -53,26 +81,25 @@ class AcceptedReservationTest {
 
     @Test
     void shouldSuccessfullyCancelReservationWhenCalledByStaffMember() {
-        // Given
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
         StaffId anotherStaff = new StaffId(UUID.randomUUID());
-        AcceptedReservation acceptedReservation = new AcceptedReservation(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
 
-        OpenReservation resultByAcceptingStaff = acceptedReservation.cancel(acceptedBy);
-        OpenReservation resultByAnotherStaff = acceptedReservation.cancel(anotherStaff);
+        OpenTerm resultByAcceptingStaff = acceptedReservation.cancel(acceptedBy);
+        OpenTerm resultByAnotherStaff = acceptedReservation.cancel(anotherStaff);
 
         assertNotNull(resultByAcceptingStaff);
-        assertInstanceOf(OpenReservation.class, resultByAcceptingStaff);
+        assertInstanceOf(OpenTerm.class, resultByAcceptingStaff);
 
         assertNotNull(resultByAnotherStaff);
-        assertInstanceOf(OpenReservation.class, resultByAnotherStaff);
+        assertInstanceOf(OpenTerm.class, resultByAnotherStaff);
     }
 
     @Test
     void shouldThrowExceptionWhenCancelByResidentArgumentIsNull() {
-        AcceptedReservation acceptedReservation = new AcceptedReservation(
+        AcceptedTerm acceptedReservation = new AcceptedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID()),
                 new StaffId(UUID.randomUUID())
@@ -83,7 +110,7 @@ class AcceptedReservationTest {
 
     @Test
     void shouldThrowExceptionWhenCancelByStaffArgumentIsNull() {
-        AcceptedReservation acceptedReservation = new AcceptedReservation(
+        AcceptedTerm acceptedReservation = new AcceptedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID()),
                 new StaffId(UUID.randomUUID())
@@ -97,6 +124,6 @@ class AcceptedReservationTest {
         ReservationId reservationId = createDummyReservationId();
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
 
-        assertThrows(NullPointerException.class, () -> new AcceptedReservation(reservationId, null, acceptedBy));
+        assertThrows(NullPointerException.class, () -> new AcceptedTerm(reservationId, null, acceptedBy));
     }
 }

@@ -7,12 +7,14 @@ import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
+import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ReservedReservationTest {
+class ReservedTermTest {
     private ReservationId createDummyReservationId() {
         return new ReservationId(
                 new DormitoryId.Builder(
@@ -23,15 +25,38 @@ class ReservedReservationTest {
     }
 
     @Test
+    void shouldBuildReservation() {
+        ReservationId reservationId = createDummyReservationId();
+        ResidentId ownerId = new ResidentId(UUID.randomUUID());
+        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId);
+
+        assertEquals(acceptedReservation.getOwnerId(), ownerId);
+        assertInstanceOf(Term.class, acceptedReservation);
+    }
+
+    @Test
+    void shouldCorrectCreateSnapshot() {
+        ReservationId reservationId = createDummyReservationId();
+        ResidentId ownerId = new ResidentId(UUID.randomUUID());
+        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId);
+
+        TermSnapshot reservationSnapshot = acceptedReservation.toDto();
+        TermSnapshot expecedReservationSnapshot = new TermSnapshot(
+                reservationId, ReservationStatus.RESERVED, ownerId, null
+        );
+        assertEquals(reservationSnapshot, expecedReservationSnapshot);
+    }
+
+    @Test
     void shouldSuccessfullyCancelReservationWhenCalledByOwner() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedReservation reservedReservation = new ReservedReservation(reservationId, ownerId);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
 
-        OpenReservation result = reservedReservation.cancel(ownerId);
+        OpenTerm result = reservedReservation.cancel(ownerId);
 
         assertNotNull(result);
-        assertInstanceOf(OpenReservation.class, result);
+        assertInstanceOf(OpenTerm.class, result);
     }
 
     @Test
@@ -39,7 +64,7 @@ class ReservedReservationTest {
         // Given
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedReservation reservedReservation = new ReservedReservation(reservationId, ownerId);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
 
         ResidentId differentResidentId = new ResidentId(UUID.randomUUID());
 
@@ -51,7 +76,7 @@ class ReservedReservationTest {
 
     @Test
     void shouldThrowExceptionWhenCancelArgumentIsNull() {
-        ReservedReservation reservedReservation = new ReservedReservation(
+        ReservedTerm reservedReservation = new ReservedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID())
         );
@@ -63,19 +88,19 @@ class ReservedReservationTest {
     void shouldSuccessfullyAcceptReservationWhenCalledByStaff() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedReservation reservedReservation = new ReservedReservation(reservationId, ownerId);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
 
         StaffId staffId = new StaffId(UUID.randomUUID());
 
-        AcceptedReservation result = reservedReservation.accept(staffId);
+        AcceptedTerm result = reservedReservation.accept(staffId);
 
         assertNotNull(result);
-        assertInstanceOf(AcceptedReservation.class, result);
+        assertInstanceOf(AcceptedTerm.class, result);
     }
 
     @Test
     void shouldThrowExceptionWhenAcceptArgumentIsNull() {
-        ReservedReservation reservedReservation = new ReservedReservation(
+        ReservedTerm reservedReservation = new ReservedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID())
         );
@@ -87,6 +112,6 @@ class ReservedReservationTest {
     void shouldThrowExceptionWhenCreatedWithNullResidentId() {
         ReservationId reservationId = createDummyReservationId();
 
-        assertThrows(NullPointerException.class, () -> new ReservedReservation(reservationId, null));
+        assertThrows(NullPointerException.class, () -> new ReservedTerm(reservationId, null));
     }
 }
