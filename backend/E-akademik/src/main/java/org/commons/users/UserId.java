@@ -1,4 +1,4 @@
-package org.commons;
+package org.commons.users;
 
 import lombok.NonNull;
 

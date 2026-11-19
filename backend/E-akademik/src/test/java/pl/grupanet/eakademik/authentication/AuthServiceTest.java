@@ -3,7 +3,7 @@ package pl.grupanet.eakademik.authentication;
 import org.commons.Email;
 import org.commons.Password;
 import org.commons.Role;
-import org.commons.UserId;
+import org.commons.users.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
