@@ -10,7 +10,7 @@ class ResidentIdTest {
     @Test
     void residentIdShouldBeInstanceOfUserIdAndUser() {
         UUID randomUuid = UUID.randomUUID();
-        ResidentId residentId = new ResidentId();
+        ResidentId residentId = new ResidentId(randomUuid);
 
         assertInstanceOf(UserId.class, residentId);
     }
