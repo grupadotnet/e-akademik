@@ -302,4 +302,23 @@ class AppReservationRepositoryTest {
         entity.setAcceptedById(acceptedBy != null ? acceptedBy.getIdAsUUID() : null);
         return entity;
     }
+
+    @Test
+    void shouldReturnSnapshotWithNullAcceptedByIdWhenStatusIsReserved() {
+        TestReservationEntity entity = createEntity(reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null);
+        List<ReservationStatus> statuses = List.of(ReservationStatus.RESERVED);
+        List<LocalDate> dates = List.of(reservationDate);
+
+        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates))
+                .thenReturn(List.of(entity));
+
+        List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(statuses, dates);
+
+        assertEquals(1, result.size());
+        TermSnapshot snapshot = result.getFirst();
+        assertEquals(reservationId, snapshot.id());
+        assertEquals(ReservationStatus.RESERVED, snapshot.status());
+        assertEquals(residentId, snapshot.ownerId());
+        assertNull(snapshot.acceptedById());
+    }
 }

@@ -12,6 +12,7 @@ import pl.grupanet.eakademik.reservation.entities.ReservationEmbeddableId;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 class AppReservationRepository<E extends BaseReservationEntity> implements ReservationRepository {
@@ -173,11 +174,13 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
     }
 
     private TermSnapshot toDto(E entity) {
+        UUID ownerId = entity.getId().getOwnerId();
+        UUID acceptedById = entity.getAcceptedById();
         return new TermSnapshot(
                 entity.getId().toDomain(),
                 entity.getStatus(),
-                new ResidentId(entity.getId().getOwnerId()),
-                new StaffId(entity.getAcceptedById())
+                ownerId != null ? new ResidentId(ownerId) : null,
+                acceptedById != null ? new StaffId(acceptedById) : null
         );
     }
 
