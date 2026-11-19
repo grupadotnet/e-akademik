@@ -16,7 +16,6 @@ class AcceptedReservation extends Reservation {
     }
 
 
-
     public OpenReservation cancel(@NonNull ResidentId residentId) { //cancel by owner
         if (!ownerId.equals(residentId)) throw new IllegalArgumentException("Only owners can cancel");
 
