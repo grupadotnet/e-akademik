@@ -10,7 +10,7 @@ public class DormitorySpecificationFactory {
     protected final DormitoryId dormitoryId;
 
     public DormitorySpecificationFactory(@NonNull UniversityNames universityName, String dormitoryName) {
-        this.dormitoryId = new DormitoryId(new Name(universityName.toString()), new Name(dormitoryName));
+        this.dormitoryId = new DormitoryId(universityName, new Name(dormitoryName));
     }
 
     public DormitorySpecification create() {
