@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 class DormitoryIdTest {
 
@@ -88,7 +87,7 @@ class DormitoryIdTest {
     @Test
     void shouldNotBeEqualWhenUniversityNameIsDifferent() {
         DormitoryId id1 = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Simmons"));
-        DormitoryId id2 = new DormitoryId(mock(UniversityNames.class), new Name("Simmons"));
+        DormitoryId id2 = new DormitoryId(UniversityNames.AGH, new Name("Simmons"));
 
         assertNotEquals(id1, id2);
     }
