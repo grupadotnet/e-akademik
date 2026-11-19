@@ -8,7 +8,7 @@ public class Name {
     private final String name;
 
     public Name(@NonNull final String name) {
-        if(name.isBlank()) throw new IllegalArgumentException("Name cannot be blank");
+        if (name.isBlank()) throw new IllegalArgumentException("Name cannot be blank");
         this.name = name;
     }
 
