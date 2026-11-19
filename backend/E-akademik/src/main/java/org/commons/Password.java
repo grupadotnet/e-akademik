@@ -6,6 +6,10 @@ public class Password extends Name {
 
     public Password(@NonNull String password) {
         super(password);
+        validate(password);
+    }
+
+    private void validate(String password) {
         if (password.length() < 8) {
             throw new IllegalArgumentException("Password length should be at least 8 characters");
         }
