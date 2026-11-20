@@ -2,6 +2,9 @@ package pl.grupanet.eakademik.reservation;
 
 import lombok.NonNull;
 import org.commons.DormitoryId;
+import org.commons.Name;
+import org.commons.RoomNumber;
+import org.commons.SlotNumber;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 class AppReservationRepository<E extends BaseReservationEntity> implements ReservationRepository {
     private final BaseReservationJpaRepository<E> jpaRepository;
@@ -27,13 +31,27 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
 
     @Override
     @Transactional(readOnly = true)
-    public List<TermSnapshot> findAllTermsForSlotAndDate(List<ReservationStatus> statuses, List<LocalDate> dates) {
+    public List<TermSnapshot> findAllTermsForSlotAndDate(@NonNull DormitoryId dormitoryId,
+                                                         List<SlotNumber> slotNumbers,
+                                                         List<ReservationStatus> statuses,
+                                                         List<LocalDate> dates) {
         validateStatuses(statuses);
-        if (statuses == null || statuses.isEmpty() || dates == null || dates.isEmpty()) {
+        if (statuses == null || statuses.isEmpty() || dates == null || dates.isEmpty()
+                || slotNumbers == null || slotNumbers.isEmpty()) {
             return List.of();
         }
 
-        return jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates).stream()
+        List<Integer> slots = slotNumbers.stream().
+                map(SlotNumber::getNumberAsInt).
+                toList();
+
+        return jpaRepository.
+                findAllById_UniversityNameAndId_DormitoryNameAndId_SlotNumberInAndStatusInAndId_ReservationDateIn(
+                        dormitoryId.getUniversityName(),
+                        dormitoryId.getDormitoryName().toString(),
+                        slots,
+                        statuses,
+                        dates).stream()
                 .map(this::toDto)
                 .toList();
     }

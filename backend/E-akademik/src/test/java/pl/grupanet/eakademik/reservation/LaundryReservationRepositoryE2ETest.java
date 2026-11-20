@@ -46,8 +46,10 @@ class LaundryReservationRepositoryE2ETest {
     @Test
     void shouldCompleteFullLaundryReservationLifecycleAgainstPostgres() {
         DormitoryId dormitoryId = new DormitoryId.Builder(UniversityNames.values()[0], "Ds-3 Bartek").build();
-        ReservationId slot1 = new ReservationId(dormitoryId, new RoomNumber("Pralnia-1"), new SlotNumber(1));
-        ReservationId slot2 = new ReservationId(dormitoryId, new RoomNumber("Pralnia-1"), new SlotNumber(2));
+        SlotNumber slotNumber1 = new SlotNumber(1);
+        SlotNumber slotNumber2 = new SlotNumber(2);
+        ReservationId slot1 = new ReservationId(dormitoryId, new RoomNumber("Pralnia-1"), slotNumber1);
+        ReservationId slot2 = new ReservationId(dormitoryId, new RoomNumber("Pralnia-1"), slotNumber2);
 
         ResidentId resident1 = new ResidentId(UUID.randomUUID());
         ResidentId resident2 = new ResidentId(UUID.randomUUID());
@@ -75,6 +77,8 @@ class LaundryReservationRepositoryE2ETest {
         );
 
         List<TermSnapshot> allReserved = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                List.of(slotNumber1, slotNumber2),
                 List.of(ReservationStatus.RESERVED),
                 List.of(date1, date2)
         );
@@ -95,6 +99,8 @@ class LaundryReservationRepositoryE2ETest {
         );
 
         List<TermSnapshot> acceptedOnDate1 = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                List.of(slotNumber1, slotNumber2),
                 List.of(ReservationStatus.ACCEPTED),
                 List.of(date1)
         );
@@ -103,6 +109,8 @@ class LaundryReservationRepositoryE2ETest {
         assertEquals(staff, acceptedOnDate1.getFirst().acceptedById());
 
         List<TermSnapshot> reservedOnDate1 = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                List.of(slotNumber1, slotNumber2),
                 List.of(ReservationStatus.RESERVED),
                 List.of(date1)
         );
@@ -119,12 +127,16 @@ class LaundryReservationRepositoryE2ETest {
         assertNull(cancelledByStaff.acceptedById());
 
         List<TermSnapshot> remainingOnDate1 = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                List.of(slotNumber1, slotNumber2),
                 List.of(ReservationStatus.RESERVED, ReservationStatus.ACCEPTED),
                 List.of(date1)
         );
         assertTrue(remainingOnDate1.isEmpty());
 
         List<TermSnapshot> remainingOnDate2 = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                List.of(slotNumber1, slotNumber2),
                 List.of(ReservationStatus.RESERVED, ReservationStatus.ACCEPTED),
                 List.of(date2)
         );

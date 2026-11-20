@@ -42,7 +42,10 @@ public interface BaseReservationJpaRepository<E extends BaseReservationEntity>
             LocalDate reservationDate
     );
 
-    List<E> findAllByStatusInAndId_ReservationDateIn(
+    List<E> findAllById_UniversityNameAndId_DormitoryNameAndId_SlotNumberInAndStatusInAndId_ReservationDateIn(
+            UniversityNames universityName,
+            String dormitoryName,
+            Collection<Integer> slotNumbers,
             Collection<ReservationStatus> statuses,
             Collection<LocalDate> reservationDates
     );

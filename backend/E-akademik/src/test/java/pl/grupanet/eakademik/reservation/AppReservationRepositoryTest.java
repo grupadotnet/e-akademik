@@ -35,6 +35,7 @@ class AppReservationRepositoryTest {
 
     private AppReservationRepository<TestReservationEntity> repository;
 
+    private DormitoryId dormitoryId;
     private ReservationId reservationId;
     private ResidentId residentId;
     private StaffId staffId;
@@ -47,7 +48,7 @@ class AppReservationRepositoryTest {
     void setUp() {
         repository = new AppReservationRepository<>(jpaRepository, TestReservationEntity::new);
 
-        DormitoryId dormitoryId = new DormitoryId.Builder(UniversityNames.values()[0], "Akademik 1").build();
+        dormitoryId = new DormitoryId.Builder(UniversityNames.values()[0], "Akademik 1").build();
         reservationId = new ReservationId(dormitoryId, new RoomNumber("101"), new SlotNumber(1));
         residentId = new ResidentId(UUID.randomUUID());
         staffId = new StaffId(UUID.randomUUID());
@@ -59,13 +60,20 @@ class AppReservationRepositoryTest {
     @Test
     void shouldReturnSnapshotsWhenSearchingByStatusesAndDates() {
         TestReservationEntity entity = createEntity(reservationId, residentId, reservationDate, ReservationStatus.ACCEPTED, staffId);
+        List<SlotNumber> slotNumbers = List.of(new SlotNumber(1));
+        List<Integer> slots = List.of(1);
         List<ReservationStatus> statuses = List.of(ReservationStatus.ACCEPTED);
         List<LocalDate> dates = List.of(reservationDate);
 
-        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates))
-                .thenReturn(List.of(entity));
+        when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_SlotNumberInAndStatusInAndId_ReservationDateIn(
+                dormitoryId.getUniversityName(),
+                dormitoryId.getDormitoryName().toString(),
+                slots,
+                statuses,
+                dates
+        )).thenReturn(List.of(entity));
 
-        List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(statuses, dates);
+        List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, statuses, dates);
 
         assertEquals(1, result.size());
         TermSnapshot snapshot = result.getFirst();
@@ -74,28 +82,31 @@ class AppReservationRepositoryTest {
         assertEquals(ReservationStatus.ACCEPTED, snapshot.status());
         assertEquals(residentId, snapshot.ownerId());
         assertEquals(staffId, snapshot.acceptedById());
-
-
     }
 
     @Test
     void shouldReturnEmptyListWhenStatusesOrDatesAreEmpty() {
-        assertTrue(repository.findAllTermsForSlotAndDate(List.of(), List.of(reservationDate)).isEmpty());
-        assertTrue(repository.findAllTermsForSlotAndDate(List.of(ReservationStatus.RESERVED), List.of()).isEmpty());
-        assertTrue(repository.findAllTermsForSlotAndDate(null, List.of(reservationDate)).isEmpty());
-        assertTrue(repository.findAllTermsForSlotAndDate(List.of(ReservationStatus.RESERVED), null).isEmpty());
+        List<SlotNumber> slotNumbers = List.of(new SlotNumber(1));
+
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, List.of(), List.of(reservationDate)).isEmpty());
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, List.of(ReservationStatus.RESERVED), List.of()).isEmpty());
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, null, List.of(reservationDate)).isEmpty());
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, List.of(ReservationStatus.RESERVED), null).isEmpty());
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, List.of(), List.of(ReservationStatus.RESERVED), List.of(reservationDate)).isEmpty());
+        assertTrue(repository.findAllTermsForSlotAndDate(dormitoryId, null, List.of(ReservationStatus.RESERVED), List.of(reservationDate)).isEmpty());
 
         verifyNoInteractions(jpaRepository);
     }
 
     @Test
     void shouldThrowExceptionWhenSearchingForOpenStatus() {
+        List<SlotNumber> slotNumbers = List.of(new SlotNumber(1));
         List<ReservationStatus> statuses = List.of(ReservationStatus.OPEN);
         List<LocalDate> dates = List.of(reservationDate);
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> repository.findAllTermsForSlotAndDate(statuses, dates)
+                () -> repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, statuses, dates)
         );
         verifyNoInteractions(jpaRepository);
     }
@@ -182,7 +193,6 @@ class AppReservationRepositoryTest {
 
     @Test
     void shouldAllowAcceptingSlotWhenDifferentSlotIsAcceptedOnSameDate() {
-        DormitoryId dormitoryId = new DormitoryId.Builder(UniversityNames.values()[0], "Akademik 1").build();
         ReservationId otherSlotId = new ReservationId(dormitoryId, new RoomNumber("999"), new SlotNumber(2));
         ResidentId otherResident = new ResidentId(UUID.randomUUID());
 
@@ -195,8 +205,12 @@ class AppReservationRepositoryTest {
                 reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null
         );
 
-        lenient().when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(
-                List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)
+        lenient().when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_SlotNumberInAndStatusInAndId_ReservationDateIn(
+                dormitoryId.getUniversityName(),
+                dormitoryId.getDormitoryName().toString(),
+                List.of(2),
+                List.of(ReservationStatus.ACCEPTED),
+                List.of(reservationDate)
         )).thenReturn(List.of(acceptedInOtherRoom));
 
         lenient().when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_RoomNumberAndId_SlotNumberAndId_ReservationDate(
@@ -226,7 +240,6 @@ class AppReservationRepositoryTest {
         );
         verify(jpaRepository, never()).save(any());
     }
-
 
     @Test
     void shouldThrowExceptionWhenAcceptingNonExistentReservation() {
@@ -335,13 +348,20 @@ class AppReservationRepositoryTest {
     @Test
     void shouldReturnSnapshotWithNullAcceptedByIdWhenStatusIsReserved() {
         TestReservationEntity entity = createEntity(reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null);
+        List<SlotNumber> slotNumbers = List.of(new SlotNumber(1));
+        List<Integer> slots = List.of(1);
         List<ReservationStatus> statuses = List.of(ReservationStatus.RESERVED);
         List<LocalDate> dates = List.of(reservationDate);
 
-        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(statuses, dates))
-                .thenReturn(List.of(entity));
+        when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_SlotNumberInAndStatusInAndId_ReservationDateIn(
+                dormitoryId.getUniversityName(),
+                dormitoryId.getDormitoryName().toString(),
+                slots,
+                statuses,
+                dates
+        )).thenReturn(List.of(entity));
 
-        List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(statuses, dates);
+        List<TermSnapshot> result = repository.findAllTermsForSlotAndDate(dormitoryId, slotNumbers, statuses, dates);
 
         assertEquals(1, result.size());
         TermSnapshot snapshot = result.getFirst();
