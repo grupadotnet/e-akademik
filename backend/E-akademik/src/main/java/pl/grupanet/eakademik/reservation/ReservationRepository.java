@@ -2,7 +2,6 @@ package pl.grupanet.eakademik.reservation;
 
 import lombok.NonNull;
 import org.commons.DormitoryId;
-import org.commons.RoomNumber;
 import org.commons.SlotNumber;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;

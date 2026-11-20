@@ -4,15 +4,18 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
+
+import java.time.LocalDate;
 
 @Getter
 class ReservedTerm extends Term {
     private final ResidentId ownerId;
 
-    public ReservedTerm(ReservationId reservationId, @NonNull ResidentId residentId) {
-        super(reservationId, ReservationStatus.RESERVED);
+    public ReservedTerm(@NonNull final ReservationId reservationId, @NonNull final ResidentId residentId,
+                        @NonNull final LocalDate localDate) {
+        super(reservationId, ReservationStatus.RESERVED, localDate);
 
         this.ownerId = residentId;
     }
@@ -20,11 +23,11 @@ class ReservedTerm extends Term {
     public OpenTerm cancel(@NonNull ResidentId residentId) { //cancel by owner
         if (!ownerId.equals(residentId)) throw new IllegalArgumentException("Only owners can cancel");
 
-        return new OpenTerm(getReservationId());
+        return new OpenTerm(getReservationId(), getLocalDate());
     }
 
     public AcceptedTerm accept(@NonNull StaffId staffId) {
-        return new AcceptedTerm(getReservationId(), ownerId, staffId);
+        return new AcceptedTerm(getReservationId(), ownerId, getLocalDate(), staffId);
     }
 
 
@@ -34,6 +37,7 @@ class ReservedTerm extends Term {
         return new TermSnapshot(
                 getReservationId(),
                 getStatus(),
+                getLocalDate(),
                 getOwnerId(),
                 null
         );
