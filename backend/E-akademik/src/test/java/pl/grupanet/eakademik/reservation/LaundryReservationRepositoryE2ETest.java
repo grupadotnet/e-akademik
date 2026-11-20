@@ -72,7 +72,7 @@ class LaundryReservationRepositoryE2ETest {
         assertEquals(ReservationStatus.RESERVED, otherDayReserved.status());
 
         assertThrows(
-                IllegalArgumentException.class,
+                IllegalStateException.class,
                 () -> laundryReservationRepository.reserve(slot1, resident1, date1)
         );
 

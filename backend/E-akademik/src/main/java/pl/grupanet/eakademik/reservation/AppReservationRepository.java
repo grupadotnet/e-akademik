@@ -70,7 +70,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
 
         validateReserveStatuses(reservations, residentId);
         if(isSlotAlreadyAccepted(id, reservationDate)){
-            throw new IllegalStateException("Slot already accepted");
+            throw new IllegalArgumentException("Slot already accepted");
         }
 
         OpenTerm openReservation = new OpenTerm(id, reservationDate);

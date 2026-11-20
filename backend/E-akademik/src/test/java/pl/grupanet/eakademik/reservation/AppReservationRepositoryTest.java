@@ -162,7 +162,7 @@ class AppReservationRepositoryTest {
     void shouldThrowExceptionWhenSlotIsAlreadyAccepted() {
         ResidentId otherResident = new ResidentId(UUID.randomUUID());
         TestReservationEntity acceptedEntity = createEntity(reservationId, otherResident, reservationDate, ReservationStatus.ACCEPTED, staffId);
-        stubSlotQuery(List.of(acceptedEntity));
+        stubSlotQueryLock(List.of(acceptedEntity));
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -325,6 +325,16 @@ class AppReservationRepositoryTest {
 
     private void stubSlotQuery(List<TestReservationEntity> entities) {
         when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_RoomNumberAndId_SlotNumberAndId_ReservationDate(
+                reservationId.dormitoryId().getUniversityName(),
+                reservationId.dormitoryId().getDormitoryName().toString(),
+                reservationId.roomNumber().toString(),
+                reservationId.slotNumber().getNumberAsInt(),
+                reservationDate
+        )).thenReturn(entities);
+    }
+
+    private void stubSlotQueryLock(List<TestReservationEntity> entities) {
+        when(jpaRepository.findAllForSlotWithLock(
                 reservationId.dormitoryId().getUniversityName(),
                 reservationId.dormitoryId().getDormitoryName().toString(),
                 reservationId.roomNumber().toString(),
