@@ -2,8 +2,6 @@ package pl.grupanet.eakademik.reservation;
 
 import lombok.NonNull;
 import org.commons.DormitoryId;
-import org.commons.Name;
-import org.commons.RoomNumber;
 import org.commons.SlotNumber;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
@@ -18,7 +16,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 class AppReservationRepository<E extends BaseReservationEntity> implements ReservationRepository {
     private final BaseReservationJpaRepository<E> jpaRepository;
@@ -72,8 +69,11 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
         List<Term> reservations = mapToReservationList(entities);
 
         validateReserveStatuses(reservations, residentId);
+        if(isSlotAlreadyAccepted(id, reservationDate)){
+            throw new IllegalArgumentException("Slot already accepted");
+        }
 
-        OpenTerm openReservation = new OpenTerm(id);
+        OpenTerm openReservation = new OpenTerm(id, reservationDate);
         ReservedTerm reservedReservation = openReservation.reserve(residentId);
 
         E newEntity = entityFactory.get();
@@ -183,9 +183,6 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
 
     private void validateReserveStatuses(List<Term> reservations, ResidentId residentId) {
         for (Term reservation : reservations) {
-            if (reservation.getStatus() == ReservationStatus.ACCEPTED) {
-                throw new IllegalArgumentException("Reservation already accepted.");
-            }
             if (reservation instanceof ReservedTerm reservedReservation) {
                 if (reservedReservation.getOwnerId().equals(residentId)) {
                     throw new IllegalArgumentException("Term already reserved.");
@@ -206,6 +203,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
         return new TermSnapshot(
                 entity.getId().toDomain(),
                 entity.getStatus(),
+                entity.getId().getReservationDate(),
                 ownerId != null ? new ResidentId(ownerId) : null,
                 acceptedById != null ? new StaffId(acceptedById) : null
         );
@@ -227,10 +225,11 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
         ResidentId ownerId = new ResidentId(embeddableId.getOwnerId());
 
         return switch (entity.getStatus()) {
-            case RESERVED -> new ReservedTerm(domainId, ownerId);
+            case RESERVED -> new ReservedTerm(domainId, ownerId, entity.getId().getReservationDate());
             case ACCEPTED -> new AcceptedTerm(
                     domainId,
                     ownerId,
+                    entity.getId().getReservationDate(),
                     new StaffId(entity.getAcceptedById())
             );
             case OPEN -> throw new IllegalStateException("Open terms should not be stored in database");

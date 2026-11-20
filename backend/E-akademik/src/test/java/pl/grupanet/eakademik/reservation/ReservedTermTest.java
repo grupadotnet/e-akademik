@@ -7,9 +7,10 @@ import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,7 +29,8 @@ class ReservedTermTest {
     void shouldBuildReservation() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId);
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId, localDate);
 
         assertEquals(acceptedReservation.getOwnerId(), ownerId);
         assertInstanceOf(Term.class, acceptedReservation);
@@ -38,11 +40,12 @@ class ReservedTermTest {
     void shouldCorrectCreateSnapshot() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId);
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ReservedTerm acceptedReservation = new ReservedTerm(reservationId, ownerId, localDate);
 
         TermSnapshot reservationSnapshot = acceptedReservation.toDto();
         TermSnapshot expecedReservationSnapshot = new TermSnapshot(
-                reservationId, ReservationStatus.RESERVED, ownerId, null
+                reservationId, ReservationStatus.RESERVED, localDate, ownerId, null
         );
         assertEquals(reservationSnapshot, expecedReservationSnapshot);
     }
@@ -51,7 +54,8 @@ class ReservedTermTest {
     void shouldSuccessfullyCancelReservationWhenCalledByOwner() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId, localDate);
 
         OpenTerm result = reservedReservation.cancel(ownerId);
 
@@ -64,7 +68,8 @@ class ReservedTermTest {
         // Given
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId, localDate);
 
         ResidentId differentResidentId = new ResidentId(UUID.randomUUID());
 
@@ -76,9 +81,11 @@ class ReservedTermTest {
 
     @Test
     void shouldThrowExceptionWhenCancelArgumentIsNull() {
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
         ReservedTerm reservedReservation = new ReservedTerm(
                 createDummyReservationId(),
-                new ResidentId(UUID.randomUUID())
+                new ResidentId(UUID.randomUUID()),
+                localDate
         );
 
         assertThrows(NullPointerException.class, () -> reservedReservation.cancel(null));
@@ -88,7 +95,8 @@ class ReservedTermTest {
     void shouldSuccessfullyAcceptReservationWhenCalledByStaff() {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
-        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId);
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ReservedTerm reservedReservation = new ReservedTerm(reservationId, ownerId, localDate);
 
         StaffId staffId = new StaffId(UUID.randomUUID());
 
@@ -100,9 +108,11 @@ class ReservedTermTest {
 
     @Test
     void shouldThrowExceptionWhenAcceptArgumentIsNull() {
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
         ReservedTerm reservedReservation = new ReservedTerm(
                 createDummyReservationId(),
-                new ResidentId(UUID.randomUUID())
+                new ResidentId(UUID.randomUUID()),
+                localDate
         );
 
         assertThrows(NullPointerException.class, () -> reservedReservation.accept(null));
@@ -111,7 +121,11 @@ class ReservedTermTest {
     @Test
     void shouldThrowExceptionWhenCreatedWithNullResidentId() {
         ReservationId reservationId = createDummyReservationId();
+        LocalDate localDate = LocalDate.of(2020, 1, 1);
+        ResidentId ownerId = new ResidentId(UUID.randomUUID());
 
-        assertThrows(NullPointerException.class, () -> new ReservedTerm(reservationId, null));
+        assertThrows(NullPointerException.class, () -> new ReservedTerm(reservationId, null, localDate));
+        assertThrows(NullPointerException.class, () -> new ReservedTerm(reservationId, null, null));
+        assertThrows(NullPointerException.class, () -> new ReservedTerm(reservationId, ownerId, null));
     }
 }

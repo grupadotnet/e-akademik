@@ -7,9 +7,10 @@ import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +31,7 @@ class AcceptedTermTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, getDummyDate(), acceptedBy);
 
         assertEquals(acceptedReservation.getAcceptedId(), acceptedBy);
         assertEquals(acceptedReservation.getOwnerId(), ownerId);
@@ -42,11 +43,11 @@ class AcceptedTermTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, getDummyDate(), acceptedBy);
 
         TermSnapshot reservationSnapshot = acceptedReservation.toDto();
         TermSnapshot expecedReservationSnapshot = new TermSnapshot(
-                reservationId, ReservationStatus.ACCEPTED, ownerId, acceptedBy
+                reservationId, ReservationStatus.ACCEPTED, getDummyDate(), ownerId, acceptedBy
         );
         assertEquals(reservationSnapshot, expecedReservationSnapshot);
     }
@@ -56,7 +57,7 @@ class AcceptedTermTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, getDummyDate(), acceptedBy);
 
         OpenTerm result = acceptedReservation.cancel(ownerId);
 
@@ -69,7 +70,7 @@ class AcceptedTermTest {
         ReservationId reservationId = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
-        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, getDummyDate(), acceptedBy);
 
         ResidentId differentResidentId = new ResidentId(UUID.randomUUID());
 
@@ -85,7 +86,7 @@ class AcceptedTermTest {
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
         StaffId anotherStaff = new StaffId(UUID.randomUUID());
-        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, acceptedBy);
+        AcceptedTerm acceptedReservation = new AcceptedTerm(reservationId, ownerId, getDummyDate(), acceptedBy);
 
         OpenTerm resultByAcceptingStaff = acceptedReservation.cancel(acceptedBy);
         OpenTerm resultByAnotherStaff = acceptedReservation.cancel(anotherStaff);
@@ -102,6 +103,7 @@ class AcceptedTermTest {
         AcceptedTerm acceptedReservation = new AcceptedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID()),
+                getDummyDate(),
                 new StaffId(UUID.randomUUID())
         );
 
@@ -113,6 +115,7 @@ class AcceptedTermTest {
         AcceptedTerm acceptedReservation = new AcceptedTerm(
                 createDummyReservationId(),
                 new ResidentId(UUID.randomUUID()),
+                getDummyDate(),
                 new StaffId(UUID.randomUUID())
         );
 
@@ -124,6 +127,11 @@ class AcceptedTermTest {
         ReservationId reservationId = createDummyReservationId();
         StaffId acceptedBy = new StaffId(UUID.randomUUID());
 
-        assertThrows(NullPointerException.class, () -> new AcceptedTerm(reservationId, null, acceptedBy));
+        assertThrows(NullPointerException.class, () -> new AcceptedTerm(reservationId, null, getDummyDate(),
+                acceptedBy));
+    }
+
+    private static LocalDate getDummyDate() {
+        return LocalDate.now();
     }
 }

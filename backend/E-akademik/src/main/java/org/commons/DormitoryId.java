@@ -2,8 +2,9 @@ package org.commons;
 
 import lombok.Getter;
 import lombok.NonNull;
-import java.util.Objects;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+
+import java.util.Objects;
 
 @Getter
 public class DormitoryId {

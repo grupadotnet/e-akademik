@@ -1,10 +1,11 @@
 package pl.grupanet.eakademik.dormitory.repositories;
-import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+
 import org.commons.DormitoryId;
 import org.commons.Name;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.DormitorySpecification;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
 import java.util.List;
 

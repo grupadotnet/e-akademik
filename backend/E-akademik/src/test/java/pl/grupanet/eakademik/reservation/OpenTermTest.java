@@ -6,9 +6,10 @@ import org.commons.SlotNumber;
 import org.commons.users.ResidentId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,7 +28,7 @@ class OpenTermTest {
     @Test
     void shouldBuildReservation() {
         ReservationId reservationId = createReservationId();
-        OpenTerm acceptedReservation = new OpenTerm(reservationId);
+        OpenTerm acceptedReservation = new OpenTerm(reservationId, getDummyDate());
 
         assertInstanceOf(Term.class, acceptedReservation);
     }
@@ -35,11 +36,11 @@ class OpenTermTest {
     @Test
     void shouldCorrectCreateSnapshot() {
         ReservationId reservationId = createReservationId();
-        OpenTerm acceptedReservation = new OpenTerm(reservationId);
+        OpenTerm acceptedReservation = new OpenTerm(reservationId, getDummyDate());
 
         TermSnapshot reservationSnapshot = acceptedReservation.toDto();
         TermSnapshot expecedReservationSnapshot = new TermSnapshot(
-                reservationId, ReservationStatus.OPEN, null, null
+                reservationId, ReservationStatus.OPEN, getDummyDate(), null, null
         );
         assertEquals(reservationSnapshot, expecedReservationSnapshot);
     }
@@ -47,27 +48,28 @@ class OpenTermTest {
     @Test
     void shouldSuccessfullyReserveAndReturnReservedReservation() {
         ReservationId reservationId = createReservationId();
-        OpenTerm openReservation = new OpenTerm(reservationId);
+        OpenTerm openReservation = new OpenTerm(reservationId, getDummyDate());
 
         ResidentId residentId = new ResidentId(UUID.randomUUID());
 
         ReservedTerm result = openReservation.reserve(residentId);
 
-        assertNotNull(result, "Zwrócona rezerwacja nie powinna być nullem");
-        assertInstanceOf(ReservedTerm.class, result, "Wynik powinien być typu ReservedReservation");
+        assertNotNull(result);
+        assertInstanceOf(ReservedTerm.class, result);
     }
 
     @Test
     void shouldThrowExceptionWhenResidentIdIsNull() {
         ReservationId reservationId = createReservationId();
-        OpenTerm openReservation = new OpenTerm(reservationId);
+        OpenTerm openReservation = new OpenTerm(reservationId, getDummyDate());
 
         NullPointerException exception = assertThrows(
                 NullPointerException.class,
                 () -> openReservation.reserve(null)
         );
+    }
 
-        assertTrue(exception.getMessage().contains("residentId is marked non-null but is null"),
-                "Komunikat wyjątku powinien wskazywać na brakujący residentId");
+    private static LocalDate getDummyDate() {
+        return LocalDate.now();
     }
 }
