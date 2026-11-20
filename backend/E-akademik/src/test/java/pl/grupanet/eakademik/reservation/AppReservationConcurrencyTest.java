@@ -23,9 +23,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -104,5 +106,51 @@ class AppReservationConcurrencyTest {
 
         assertEquals(1, successCount.get());
         assertEquals(1, failureCount.get());
+    }
+
+    @Test
+    void shouldHandleConcurrentAcceptAndReserveOnSameSlotSafely() throws InterruptedException {
+        reservationRepository.reserve(reservationId, resident1, reservationDate);
+
+        int threads = 2;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        CountDownLatch readyLatch = new CountDownLatch(threads);
+        CountDownLatch startLatch = new CountDownLatch(1);
+
+        AtomicBoolean acceptSucceeded = new AtomicBoolean(false);
+        AtomicBoolean reserveSucceeded = new AtomicBoolean(false);
+
+        executor.submit(() -> {
+            readyLatch.countDown();
+            try {
+                startLatch.await();
+                reservationRepository.accept(reservationId, resident1, staff1, reservationDate);
+                acceptSucceeded.set(true);
+            } catch (Exception ignored) {
+            }
+        });
+
+        executor.submit(() -> {
+            readyLatch.countDown();
+            try {
+                startLatch.await();
+                reservationRepository.reserve(reservationId, resident2, reservationDate);
+                reserveSucceeded.set(true);
+            } catch (Exception ignored) {
+            }
+        });
+
+        readyLatch.await();
+        startLatch.countDown();
+
+        executor.shutdown();
+        executor.awaitTermination(5, TimeUnit.SECONDS);
+
+        assertTrue(acceptSucceeded.get());
+        if (reserveSucceeded.get()) {
+            assertEquals(2, jpaRepository.count());
+        } else {
+            assertEquals(1, jpaRepository.count());
+        }
     }
 }
