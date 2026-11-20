@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 class DormitorySpecificationFactoryTest {

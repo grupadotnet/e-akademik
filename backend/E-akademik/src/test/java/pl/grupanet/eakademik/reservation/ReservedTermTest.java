@@ -7,8 +7,8 @@ import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 
 import java.time.LocalDate;
 import java.util.UUID;

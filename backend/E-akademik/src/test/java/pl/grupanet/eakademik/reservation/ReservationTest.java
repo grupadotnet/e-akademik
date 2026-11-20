@@ -6,8 +6,8 @@ import org.commons.SlotNumber;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
-import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
+import pl.grupanet.eakademik.reservation.dto.TermSnapshot;
 
 import java.time.LocalDate;
 
