@@ -1,6 +1,7 @@
 package pl.grupanet.eakademik.reservation;
 
 import lombok.NonNull;
+import org.commons.DormitoryId;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,11 +78,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
                                @NonNull final LocalDate reservationDate) {
         ReservationEmbeddableId reservationEmbeddableId = ReservationEmbeddableId.from(id, residentId, reservationDate);
 
-        boolean alreadyAccepted = !findAllTermsForSlotAndDate(
-                List.of(ReservationStatus.ACCEPTED),
-                List.of(reservationDate)
-        ).isEmpty();
-        if (alreadyAccepted) {
+        if (isSlotAlreadyAccepted(id, reservationDate)) {
             throw new IllegalArgumentException("Slot is already accepted.");
         }
 
@@ -102,6 +99,18 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
         return acceptedReservation.toDto();
     }
 
+    private boolean isSlotAlreadyAccepted(ReservationId reservationId, LocalDate reservationDate) {
+        DormitoryId dormitoryId = reservationId.dormitoryId();
+        return jpaRepository.findAllForSlotWithLock(
+                        dormitoryId.getUniversityName(),
+                        dormitoryId.getDormitoryName().toString(),
+                        reservationId.roomNumber().toString(),
+                        reservationId.slotNumber().getNumberAsInt(),
+                        reservationDate
+                ).stream().
+                anyMatch(entity -> entity.getStatus() == ReservationStatus.ACCEPTED);
+    }
+
     @Override
     @Transactional
     public TermSnapshot cancelByStaff(@NonNull final ReservationId id,
@@ -113,7 +122,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
         Term reservation = toDomain(entity);
         if (reservation.getStatus() != ReservationStatus.ACCEPTED) {
-            throw new IllegalArgumentException("Cannot accept a reservation with status " + reservation.getStatus());
+            throw new IllegalArgumentException("Cannot cancel a reservation with status " + reservation.getStatus());
         }
 
         AcceptedTerm acceptedReservation = (AcceptedTerm) reservation;
@@ -135,7 +144,7 @@ class AppReservationRepository<E extends BaseReservationEntity> implements Reser
 
 
         if (reservation.getStatus() == ReservationStatus.OPEN) {
-            throw new IllegalArgumentException("Cannot accept a reservation with status " + reservation.getStatus());
+            throw new IllegalArgumentException("Cannot cancel a reservation with status " + reservation.getStatus());
         }
 
         OpenTerm openReservation = null;

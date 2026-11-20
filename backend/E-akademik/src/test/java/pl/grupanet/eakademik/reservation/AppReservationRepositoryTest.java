@@ -167,8 +167,6 @@ class AppReservationRepositoryTest {
         ReservationEmbeddableId embeddableId = ReservationEmbeddableId.from(reservationId, residentId, reservationDate);
         TestReservationEntity existingEntity = createEntity(reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null);
 
-        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
-                .thenReturn(List.of());
         when(jpaRepository.findById(embeddableId)).thenReturn(Optional.of(existingEntity));
 
         TermSnapshot snapshot = repository.accept(reservationId, residentId, staffId, reservationDate);
@@ -183,12 +181,44 @@ class AppReservationRepositoryTest {
     }
 
     @Test
+    void shouldAllowAcceptingSlotWhenDifferentSlotIsAcceptedOnSameDate() {
+        DormitoryId dormitoryId = new DormitoryId.Builder(UniversityNames.values()[0], "Akademik 1").build();
+        ReservationId otherSlotId = new ReservationId(dormitoryId, new RoomNumber("999"), new SlotNumber(2));
+        ResidentId otherResident = new ResidentId(UUID.randomUUID());
+
+        TestReservationEntity acceptedInOtherRoom = createEntity(
+                otherSlotId, otherResident, reservationDate, ReservationStatus.ACCEPTED, staffId
+        );
+
+        ReservationEmbeddableId embeddableId = ReservationEmbeddableId.from(reservationId, residentId, reservationDate);
+        TestReservationEntity myPendingReservation = createEntity(
+                reservationId, residentId, reservationDate, ReservationStatus.RESERVED, null
+        );
+
+        lenient().when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(
+                List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)
+        )).thenReturn(List.of(acceptedInOtherRoom));
+
+        lenient().when(jpaRepository.findAllById_UniversityNameAndId_DormitoryNameAndId_RoomNumberAndId_SlotNumberAndId_ReservationDate(
+                reservationId.dormitoryId().getUniversityName(),
+                reservationId.dormitoryId().getDormitoryName().toString(),
+                reservationId.roomNumber().toString(),
+                reservationId.slotNumber().getNumberAsInt(),
+                reservationDate
+        )).thenReturn(List.of(myPendingReservation));
+
+        when(jpaRepository.findById(embeddableId)).thenReturn(Optional.of(myPendingReservation));
+
+        TermSnapshot snapshot = repository.accept(reservationId, residentId, staffId, reservationDate);
+
+        assertEquals(ReservationStatus.ACCEPTED, snapshot.status());
+        assertEquals(reservationId, snapshot.id());
+    }
+
+    @Test
     void shouldThrowExceptionWhenAcceptingAlreadyAcceptedSlot() {
         ResidentId otherResident = new ResidentId(UUID.randomUUID());
         TestReservationEntity acceptedEntity = createEntity(reservationId, otherResident, reservationDate, ReservationStatus.ACCEPTED, staffId);
-
-        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
-                .thenReturn(List.of(acceptedEntity));
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -197,11 +227,10 @@ class AppReservationRepositoryTest {
         verify(jpaRepository, never()).save(any());
     }
 
+
     @Test
     void shouldThrowExceptionWhenAcceptingNonExistentReservation() {
         ReservationEmbeddableId embeddableId = ReservationEmbeddableId.from(reservationId, residentId, reservationDate);
-        when(jpaRepository.findAllByStatusInAndId_ReservationDateIn(List.of(ReservationStatus.ACCEPTED), List.of(reservationDate)))
-                .thenReturn(List.of());
         when(jpaRepository.findById(embeddableId)).thenReturn(Optional.empty());
 
         assertThrows(

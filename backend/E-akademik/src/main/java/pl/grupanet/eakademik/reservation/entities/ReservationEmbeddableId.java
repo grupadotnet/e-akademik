@@ -27,22 +27,22 @@ import java.util.UUID;
 public class ReservationEmbeddableId implements Serializable {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "university_name", nullable = false)
+    @Column(name = "university_name", updatable = false, nullable = false)
     private UniversityNames universityName;
 
-    @Column(name = "dormitory_name", nullable = false)
+    @Column(name = "dormitory_name", updatable = false, nullable = false)
     private String dormitoryName;
 
-    @Column(name = "room_number", nullable = false)
+    @Column(name = "room_number", updatable = false, nullable = false)
     private String roomNumber;
 
-    @Column(name = "slot_number", nullable = false)
+    @Column(name = "slot_number", updatable = false, nullable = false)
     private Integer slotNumber;
 
-    @Column(name = "owner_id", nullable = false)
+    @Column(name = "owner_id", updatable = false, nullable = false)
     private UUID ownerId;
 
-    @Column(name = "reservation_date", nullable = false)
+    @Column(name = "reservation_date", updatable = false, nullable = false)
     private LocalDate reservationDate;
 
     public static ReservationEmbeddableId from(ReservationId id, ResidentId residentId, LocalDate reservationDate) {
