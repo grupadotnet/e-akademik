@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 import pl.grupanet.eakademik.reservation.ReservationId;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,7 +28,7 @@ class TermSnapshotTest {
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedById = new StaffId(UUID.randomUUID());
 
-        TermSnapshot snapshot = new TermSnapshot(id, status, ownerId, acceptedById);
+        TermSnapshot snapshot = new TermSnapshot(id, status, getDummyDate(), ownerId, acceptedById);
 
         assertNotNull(snapshot);
         assertEquals(id, snapshot.id());
@@ -41,7 +42,7 @@ class TermSnapshotTest {
         ReservationId id = createDummyReservationId();
         ReservationStatus status = ReservationStatus.OPEN;
 
-        TermSnapshot snapshot = new TermSnapshot(id, status, null, null);
+        TermSnapshot snapshot = new TermSnapshot(id, status, getDummyDate(), null, null);
 
         assertNotNull(snapshot);
         assertEquals(id, snapshot.id());
@@ -57,7 +58,7 @@ class TermSnapshotTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> new TermSnapshot(null, ReservationStatus.RESERVED, ownerId, acceptedById)
+                () -> new TermSnapshot(null, ReservationStatus.RESERVED, getDummyDate(), ownerId, acceptedById)
         );
     }
 
@@ -69,7 +70,7 @@ class TermSnapshotTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> new TermSnapshot(id, null, ownerId, acceptedById)
+                () -> new TermSnapshot(id, null, getDummyDate(), ownerId, acceptedById)
         );
     }
 
@@ -78,7 +79,7 @@ class TermSnapshotTest {
         ReservationId id = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
         StaffId acceptedById = new StaffId(UUID.randomUUID());
-        TermSnapshot snapshot = new TermSnapshot(id, ReservationStatus.ACCEPTED, ownerId, acceptedById);
+        TermSnapshot snapshot = new TermSnapshot(id, ReservationStatus.ACCEPTED, getDummyDate(), ownerId, acceptedById);
 
         assertEquals(snapshot, snapshot);
         assertEquals(snapshot.hashCode(), snapshot.hashCode());
@@ -92,12 +93,14 @@ class TermSnapshotTest {
         TermSnapshot first = new TermSnapshot(
                 createDummyReservationId(),
                 ReservationStatus.ACCEPTED,
+                getDummyDate(),
                 new ResidentId(ownerUuid),
                 new StaffId(staffUuid)
         );
         TermSnapshot second = new TermSnapshot(
                 createDummyReservationId(),
                 ReservationStatus.ACCEPTED,
+                getDummyDate(),
                 new ResidentId(ownerUuid),
                 new StaffId(staffUuid)
         );
@@ -108,8 +111,10 @@ class TermSnapshotTest {
 
     @Test
     void shouldBeEqualWhenNullableFieldsAreNull() {
-        TermSnapshot first = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, null, null);
-        TermSnapshot second = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, null, null);
+        TermSnapshot first = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, getDummyDate(),
+                null, null);
+        TermSnapshot second = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, getDummyDate(),
+                null, null);
 
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
@@ -117,7 +122,8 @@ class TermSnapshotTest {
 
     @Test
     void shouldNotBeEqualToNullOrDifferentType() {
-        TermSnapshot snapshot = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, null, null);
+        TermSnapshot snapshot = new TermSnapshot(createDummyReservationId(), ReservationStatus.OPEN, getDummyDate(),
+                null, null);
 
         assertNotEquals(null, snapshot);
         assertNotEquals("not a snapshot", snapshot);
@@ -129,8 +135,10 @@ class TermSnapshotTest {
         ReservationId differentId = new ReservationId(dormitoryId, new RoomNumber("102"), new SlotNumber(1));
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
 
-        TermSnapshot first = new TermSnapshot(createDummyReservationId(), ReservationStatus.RESERVED, ownerId, null);
-        TermSnapshot second = new TermSnapshot(differentId, ReservationStatus.RESERVED, ownerId, null);
+        TermSnapshot first = new TermSnapshot(createDummyReservationId(), ReservationStatus.RESERVED, getDummyDate(),
+                ownerId, null);
+        TermSnapshot second = new TermSnapshot(differentId, ReservationStatus.RESERVED, getDummyDate(),
+                ownerId, null);
 
         assertNotEquals(first, second);
     }
@@ -140,8 +148,8 @@ class TermSnapshotTest {
         ReservationId id = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
 
-        TermSnapshot first = new TermSnapshot(id, ReservationStatus.OPEN, ownerId, null);
-        TermSnapshot second = new TermSnapshot(id, ReservationStatus.RESERVED, ownerId, null);
+        TermSnapshot first = new TermSnapshot(id, ReservationStatus.OPEN, getDummyDate(), ownerId, null);
+        TermSnapshot second = new TermSnapshot(id, ReservationStatus.RESERVED, getDummyDate(), ownerId, null);
 
         assertNotEquals(first, second);
     }
@@ -150,9 +158,12 @@ class TermSnapshotTest {
     void shouldNotBeEqualWhenOwnerIdDiffers() {
         ReservationId id = createDummyReservationId();
 
-        TermSnapshot withOwner = new TermSnapshot(id, ReservationStatus.RESERVED, new ResidentId(UUID.randomUUID()), null);
-        TermSnapshot withDifferentOwner = new TermSnapshot(id, ReservationStatus.RESERVED, new ResidentId(UUID.randomUUID()), null);
-        TermSnapshot withoutOwner = new TermSnapshot(id, ReservationStatus.RESERVED, null, null);
+        TermSnapshot withOwner = new TermSnapshot(id, ReservationStatus.RESERVED, getDummyDate(),
+                new ResidentId(UUID.randomUUID()), null);
+        TermSnapshot withDifferentOwner = new TermSnapshot(id, ReservationStatus.RESERVED, getDummyDate(),
+                new ResidentId(UUID.randomUUID()), null);
+        TermSnapshot withoutOwner = new TermSnapshot(id, ReservationStatus.RESERVED, getDummyDate(),
+                null, null);
 
         assertNotEquals(withOwner, withDifferentOwner);
         assertNotEquals(withOwner, withoutOwner);
@@ -163,11 +174,18 @@ class TermSnapshotTest {
         ReservationId id = createDummyReservationId();
         ResidentId ownerId = new ResidentId(UUID.randomUUID());
 
-        TermSnapshot withStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, ownerId, new StaffId(UUID.randomUUID()));
-        TermSnapshot withDifferentStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, ownerId, new StaffId(UUID.randomUUID()));
-        TermSnapshot withoutStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, ownerId, null);
+        TermSnapshot withStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, getDummyDate(), ownerId,
+                new StaffId(UUID.randomUUID()));
+        TermSnapshot withDifferentStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, getDummyDate(), ownerId,
+                new StaffId(UUID.randomUUID()));
+        TermSnapshot withoutStaff = new TermSnapshot(id, ReservationStatus.ACCEPTED, getDummyDate(), ownerId,
+                null);
 
         assertNotEquals(withStaff, withDifferentStaff);
         assertNotEquals(withStaff, withoutStaff);
+    }
+
+    private static LocalDate getDummyDate() {
+        return LocalDate.now();
     }
 }

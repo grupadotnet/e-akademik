@@ -13,7 +13,7 @@ class OpenTerm extends Term {
     }
 
     public ReservedTerm reserve(@NonNull ResidentId residentId) {
-        return new ReservedTerm(getReservationId(), residentId);
+        return new ReservedTerm(getReservationId(), residentId, getLocalDate());
     }
 
     @Override
