@@ -2,7 +2,7 @@ package pl.grupanet.eakademik.authentication.repositories;
 
 import org.commons.Email;
 import org.commons.Role;
-import org.commons.UserId;
+import org.commons.users.UserId;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package org.commons;
+package org.commons.users;
 
 import lombok.NonNull;
 
@@ -10,6 +10,10 @@ public class UserId {
 
     public UserId(@NonNull final UUID id) {
         this.id = id;
+    }
+
+    public UUID getIdAsUUID() {
+        return id;
     }
 
     @Override

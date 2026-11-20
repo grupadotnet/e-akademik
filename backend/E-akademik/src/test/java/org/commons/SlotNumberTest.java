@@ -43,4 +43,38 @@ class SlotNumberTest {
 
         assertEquals("42", stringValue);
     }
+
+    @Test
+    void shouldBeEqualToItself() {
+        SlotNumber slotNumber = new SlotNumber(5);
+
+        assertEquals(slotNumber, slotNumber);
+        assertEquals(slotNumber.hashCode(), slotNumber.hashCode());
+    }
+
+    @Test
+    void shouldBeEqualWhenNumbersAreIdentical() {
+        SlotNumber first = new SlotNumber(5);
+        SlotNumber second = new SlotNumber(5);
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    @Test
+    void shouldNotBeEqualWhenNumbersDiffer() {
+        SlotNumber first = new SlotNumber(5);
+        SlotNumber second = new SlotNumber(6);
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void shouldNotBeEqualToNullOrDifferentType() {
+        SlotNumber slotNumber = new SlotNumber(5);
+
+        assertNotEquals(null, slotNumber);
+        assertNotEquals(5, slotNumber);
+        assertNotEquals("5", slotNumber);
+    }
 }

@@ -1,6 +1,7 @@
 package pl.grupanet.eakademik.authentication;
 
 import org.commons.*;
+import org.commons.users.UserId;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
