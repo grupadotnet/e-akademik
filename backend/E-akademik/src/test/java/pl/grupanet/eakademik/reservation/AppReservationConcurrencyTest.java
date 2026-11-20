@@ -11,23 +11,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.reservation.dto.ReservationStatus;
 import pl.grupanet.eakademik.reservation.entities.BaseReservationEntity;
 import pl.grupanet.eakademik.reservation.entities.BaseReservationJpaRepository;
+import pl.grupanet.eakademik.reservation.entities.LaundryReservationJpaRepository;
 
 import java.time.LocalDate;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -37,8 +40,8 @@ class AppReservationConcurrencyTest {
     @Autowired
     private LaundryReservationRepository reservationRepository;
 
-    @Autowired
-    private BaseReservationJpaRepository<? extends BaseReservationEntity> jpaRepository;
+    @MockitoSpyBean
+    private LaundryReservationJpaRepository jpaRepository;
 
     private ReservationId reservationId;
     private ResidentId resident1;
@@ -151,6 +154,47 @@ class AppReservationConcurrencyTest {
             assertEquals(2, jpaRepository.count());
         } else {
             assertEquals(1, jpaRepository.count());
+        }
+    }
+
+    @Test
+    void shouldNeverHaveBothAcceptedAndNewReservedAfterConcurrentAcceptAndReserve() throws InterruptedException {
+        for (int i = 0; i < 50; i++) {
+            jpaRepository.deleteAll();
+            reservationRepository.reserve(reservationId, resident1, reservationDate);
+
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            CountDownLatch readyLatch = new CountDownLatch(2);
+            CountDownLatch startLatch = new CountDownLatch(1);
+
+            executor.submit(() -> {
+                readyLatch.countDown();
+                try {
+                    startLatch.await();
+                    reservationRepository.accept(reservationId, resident1, staff1, reservationDate);
+                } catch (Exception ignored) {
+                }
+            });
+
+            executor.submit(() -> {
+                readyLatch.countDown();
+                try {
+                    startLatch.await();
+                    reservationRepository.reserve(reservationId, resident2, reservationDate);
+                } catch (Exception ignored) {
+                }
+            });
+
+            readyLatch.await();
+            startLatch.countDown();
+            executor.shutdown();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+
+            var all = jpaRepository.findAll();
+            long acceptedCount = all.stream().filter(e -> e.getStatus() == ReservationStatus.ACCEPTED).count();
+
+            assertEquals(1, acceptedCount);
+            assertEquals(1, all.size());
         }
     }
 }
