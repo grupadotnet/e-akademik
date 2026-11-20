@@ -23,15 +23,17 @@ class ResidentDtoTest {
     @Test
     void shouldCreateResidentDtoWithAllFields() {
         ResidentId id = new ResidentId(UUID.randomUUID());
-        Name fullName = new Name("Jan Kowalski");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
         DormitoryId dormitoryId = createDummyDormitoryId();
         RoomNumber roomNumber = new RoomNumber("204B");
 
-        ResidentDto dto = new ResidentDto(id, fullName, dormitoryId, roomNumber);
+        ResidentDto dto = new ResidentDto(id, name, surname, dormitoryId, roomNumber);
 
         assertNotNull(dto);
         assertEquals(id, dto.id());
-        assertEquals(fullName, dto.fullName());
+        assertEquals(name, dto.name());
+        assertEquals(surname, dto.surname());
         assertEquals(dormitoryId, dto.dormitoryId());
         assertEquals(roomNumber, dto.roomNumber());
     }
@@ -39,21 +41,24 @@ class ResidentDtoTest {
     @Test
     void shouldThrowExceptionWhenAnyFieldIsNull() {
         ResidentId id = new ResidentId(UUID.randomUUID());
-        Name fullName = new Name("Jan Kowalski");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
         DormitoryId dormitoryId = createDummyDormitoryId();
         RoomNumber roomNumber = new RoomNumber("204B");
 
-        assertThrows(NullPointerException.class, () -> new ResidentDto(null, fullName, dormitoryId, roomNumber));
-        assertThrows(NullPointerException.class, () -> new ResidentDto(id, null, dormitoryId, roomNumber));
-        assertThrows(NullPointerException.class, () -> new ResidentDto(id, fullName, null, roomNumber));
-        assertThrows(NullPointerException.class, () -> new ResidentDto(id, fullName, dormitoryId, null));
+        assertThrows(NullPointerException.class, () -> new ResidentDto(null, name, surname, dormitoryId, roomNumber));
+        assertThrows(NullPointerException.class, () -> new ResidentDto(id, null, surname, dormitoryId, roomNumber));
+        assertThrows(NullPointerException.class, () -> new ResidentDto(id, name, null, dormitoryId, roomNumber));
+        assertThrows(NullPointerException.class, () -> new ResidentDto(id, name, surname, null, roomNumber));
+        assertThrows(NullPointerException.class, () -> new ResidentDto(id, name, surname, dormitoryId, null));
     }
 
     @Test
     void shouldBeEqualToItself() {
         ResidentDto dto = new ResidentDto(
                 new ResidentId(UUID.randomUUID()),
-                new Name("Jan Kowalski"),
+                new Name("Jan"),
+                new Name("Kowalski"),
                 createDummyDormitoryId(),
                 new RoomNumber("204B")
         );
@@ -68,13 +73,15 @@ class ResidentDtoTest {
 
         ResidentDto first = new ResidentDto(
                 new ResidentId(uuid),
-                new Name("Jan Kowalski"),
+                new Name("Jan"),
+                new Name("Kowalski"),
                 createDummyDormitoryId(),
                 new RoomNumber("204B")
         );
         ResidentDto second = new ResidentDto(
                 new ResidentId(uuid),
-                new Name("Jan Kowalski"),
+                new Name("Jan"),
+                new Name("Kowalski"),
                 createDummyDormitoryId(),
                 new RoomNumber("204B")
         );
@@ -87,7 +94,8 @@ class ResidentDtoTest {
     void shouldNotBeEqualToNullOrDifferentType() {
         ResidentDto dto = new ResidentDto(
                 new ResidentId(UUID.randomUUID()),
-                new Name("Jan Kowalski"),
+                new Name("Jan"),
+                new Name("Kowalski"),
                 createDummyDormitoryId(),
                 new RoomNumber("204B")
         );
@@ -98,24 +106,39 @@ class ResidentDtoTest {
 
     @Test
     void shouldNotBeEqualWhenIdDiffers() {
-        Name fullName = new Name("Jan Kowalski");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
         DormitoryId dormitoryId = createDummyDormitoryId();
         RoomNumber roomNumber = new RoomNumber("204B");
 
-        ResidentDto first = new ResidentDto(new ResidentId(UUID.randomUUID()), fullName, dormitoryId, roomNumber);
-        ResidentDto second = new ResidentDto(new ResidentId(UUID.randomUUID()), fullName, dormitoryId, roomNumber);
+        ResidentDto first = new ResidentDto(new ResidentId(UUID.randomUUID()), name, surname, dormitoryId, roomNumber);
+        ResidentDto second = new ResidentDto(new ResidentId(UUID.randomUUID()), name, surname, dormitoryId, roomNumber);
 
         assertNotEquals(first, second);
     }
 
     @Test
-    void shouldNotBeEqualWhenFullNameDiffers() {
+    void shouldNotBeEqualWhenNameDiffers() {
         ResidentId id = new ResidentId(UUID.randomUUID());
+        Name surname = new Name("Kowalski");
         DormitoryId dormitoryId = createDummyDormitoryId();
         RoomNumber roomNumber = new RoomNumber("204B");
 
-        ResidentDto first = new ResidentDto(id, new Name("Jan Kowalski"), dormitoryId, roomNumber);
-        ResidentDto second = new ResidentDto(id, new Name("Anna Nowak"), dormitoryId, roomNumber);
+        ResidentDto first = new ResidentDto(id, new Name("Jan"), surname, dormitoryId, roomNumber);
+        ResidentDto second = new ResidentDto(id, new Name("Adam"), surname, dormitoryId, roomNumber);
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenSurnameDiffers() {
+        ResidentId id = new ResidentId(UUID.randomUUID());
+        Name name = new Name("Jan");
+        DormitoryId dormitoryId = createDummyDormitoryId();
+        RoomNumber roomNumber = new RoomNumber("204B");
+
+        ResidentDto first = new ResidentDto(id, name, new Name("Kowalski"), dormitoryId, roomNumber);
+        ResidentDto second = new ResidentDto(id, name, new Name("Nowak"), dormitoryId, roomNumber);
 
         assertNotEquals(first, second);
     }
@@ -123,18 +146,21 @@ class ResidentDtoTest {
     @Test
     void shouldNotBeEqualWhenDormitoryIdDiffers() {
         ResidentId id = new ResidentId(UUID.randomUUID());
-        Name fullName = new Name("Jan Kowalski");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
         RoomNumber roomNumber = new RoomNumber("204B");
 
         ResidentDto first = new ResidentDto(
                 id,
-                fullName,
+                name,
+                surname,
                 new DormitoryId.Builder(UniversityNames.values()[0], "Ds-3 Bartek").build(),
                 roomNumber
         );
         ResidentDto second = new ResidentDto(
                 id,
-                fullName,
+                name,
+                surname,
                 new DormitoryId.Builder(UniversityNames.values()[0], "Ds-1").build(),
                 roomNumber
         );
@@ -145,11 +171,12 @@ class ResidentDtoTest {
     @Test
     void shouldNotBeEqualWhenRoomNumberDiffers() {
         ResidentId id = new ResidentId(UUID.randomUUID());
-        Name fullName = new Name("Jan Kowalski");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
         DormitoryId dormitoryId = createDummyDormitoryId();
 
-        ResidentDto first = new ResidentDto(id, fullName, dormitoryId, new RoomNumber("204B"));
-        ResidentDto second = new ResidentDto(id, fullName, dormitoryId, new RoomNumber("205A"));
+        ResidentDto first = new ResidentDto(id, name, surname, dormitoryId, new RoomNumber("204B"));
+        ResidentDto second = new ResidentDto(id, name, surname, dormitoryId, new RoomNumber("205A"));
 
         assertNotEquals(first, second);
     }

@@ -8,7 +8,8 @@ import org.commons.users.ResidentId;
 
 public record ResidentDto(
         @NonNull ResidentId id,
-        @NonNull Name fullName,
+        @NonNull Name name,
+        @NonNull Name surname,
         @NonNull DormitoryId dormitoryId,
         @NonNull RoomNumber roomNumber
         ) {

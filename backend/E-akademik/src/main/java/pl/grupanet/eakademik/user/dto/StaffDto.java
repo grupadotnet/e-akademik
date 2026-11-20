@@ -7,7 +7,8 @@ import org.commons.users.StaffId;
 
 public record StaffDto(
         @NonNull StaffId id,
-        @NonNull Name fullName,
+        @NonNull Name name,
+        @NonNull Name surname,
         @NonNull DormitoryId dormitoryId
         ) {
 }

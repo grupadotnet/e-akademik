@@ -22,33 +22,38 @@ class StaffDtoTest {
     @Test
     void shouldCreateStaffDtoWithAllFields() {
         StaffId id = new StaffId(UUID.randomUUID());
-        Name fullName = new Name("Anna Nowak");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
         DormitoryId dormitoryId = createDummyDormitoryId();
 
-        StaffDto dto = new StaffDto(id, fullName, dormitoryId);
+        StaffDto dto = new StaffDto(id, name, surname, dormitoryId);
 
         assertNotNull(dto);
         assertEquals(id, dto.id());
-        assertEquals(fullName, dto.fullName());
+        assertEquals(name, dto.name());
+        assertEquals(surname, dto.surname());
         assertEquals(dormitoryId, dto.dormitoryId());
     }
 
     @Test
     void shouldThrowExceptionWhenAnyFieldIsNull() {
         StaffId id = new StaffId(UUID.randomUUID());
-        Name fullName = new Name("Anna Nowak");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
         DormitoryId dormitoryId = createDummyDormitoryId();
 
-        assertThrows(NullPointerException.class, () -> new StaffDto(null, fullName, dormitoryId));
-        assertThrows(NullPointerException.class, () -> new StaffDto(id, null, dormitoryId));
-        assertThrows(NullPointerException.class, () -> new StaffDto(id, fullName, null));
+        assertThrows(NullPointerException.class, () -> new StaffDto(null, name, surname, dormitoryId));
+        assertThrows(NullPointerException.class, () -> new StaffDto(id, null, surname, dormitoryId));
+        assertThrows(NullPointerException.class, () -> new StaffDto(id, name, null, dormitoryId));
+        assertThrows(NullPointerException.class, () -> new StaffDto(id, name, surname, null));
     }
 
     @Test
     void shouldBeEqualToItself() {
         StaffDto dto = new StaffDto(
                 new StaffId(UUID.randomUUID()),
-                new Name("Anna Nowak"),
+                new Name("Anna"),
+                new Name("Nowak"),
                 createDummyDormitoryId()
         );
 
@@ -62,12 +67,14 @@ class StaffDtoTest {
 
         StaffDto first = new StaffDto(
                 new StaffId(uuid),
-                new Name("Anna Nowak"),
+                new Name("Anna"),
+                new Name("Nowak"),
                 createDummyDormitoryId()
         );
         StaffDto second = new StaffDto(
                 new StaffId(uuid),
-                new Name("Anna Nowak"),
+                new Name("Anna"),
+                new Name("Nowak"),
                 createDummyDormitoryId()
         );
 
@@ -79,7 +86,8 @@ class StaffDtoTest {
     void shouldNotBeEqualToNullOrDifferentType() {
         StaffDto dto = new StaffDto(
                 new StaffId(UUID.randomUUID()),
-                new Name("Anna Nowak"),
+                new Name("Anna"),
+                new Name("Nowak"),
                 createDummyDormitoryId()
         );
 
@@ -89,22 +97,36 @@ class StaffDtoTest {
 
     @Test
     void shouldNotBeEqualWhenIdDiffers() {
-        Name fullName = new Name("Anna Nowak");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
         DormitoryId dormitoryId = createDummyDormitoryId();
 
-        StaffDto first = new StaffDto(new StaffId(UUID.randomUUID()), fullName, dormitoryId);
-        StaffDto second = new StaffDto(new StaffId(UUID.randomUUID()), fullName, dormitoryId);
+        StaffDto first = new StaffDto(new StaffId(UUID.randomUUID()), name, surname, dormitoryId);
+        StaffDto second = new StaffDto(new StaffId(UUID.randomUUID()), name, surname, dormitoryId);
 
         assertNotEquals(first, second);
     }
 
     @Test
-    void shouldNotBeEqualWhenFullNameDiffers() {
+    void shouldNotBeEqualWhenNameDiffers() {
         StaffId id = new StaffId(UUID.randomUUID());
+        Name surname = new Name("Nowak");
         DormitoryId dormitoryId = createDummyDormitoryId();
 
-        StaffDto first = new StaffDto(id, new Name("Anna Nowak"), dormitoryId);
-        StaffDto second = new StaffDto(id, new Name("Jan Kowalski"), dormitoryId);
+        StaffDto first = new StaffDto(id, new Name("Anna"), surname, dormitoryId);
+        StaffDto second = new StaffDto(id, new Name("Maria"), surname, dormitoryId);
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenSurnameDiffers() {
+        StaffId id = new StaffId(UUID.randomUUID());
+        Name name = new Name("Anna");
+        DormitoryId dormitoryId = createDummyDormitoryId();
+
+        StaffDto first = new StaffDto(id, name, new Name("Nowak"), dormitoryId);
+        StaffDto second = new StaffDto(id, name, new Name("Kowalska"), dormitoryId);
 
         assertNotEquals(first, second);
     }
@@ -112,16 +134,19 @@ class StaffDtoTest {
     @Test
     void shouldNotBeEqualWhenDormitoryIdDiffers() {
         StaffId id = new StaffId(UUID.randomUUID());
-        Name fullName = new Name("Anna Nowak");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
 
         StaffDto first = new StaffDto(
                 id,
-                fullName,
+                name,
+                surname,
                 new DormitoryId.Builder(UniversityNames.values()[0], "Ds-3 Bartek").build()
         );
         StaffDto second = new StaffDto(
                 id,
-                fullName,
+                name,
+                surname,
                 new DormitoryId.Builder(UniversityNames.values()[0], "Ds-1").build()
         );
 
