@@ -7,13 +7,14 @@ import pl.grupanet.eakademik.user.dto.ResidentDto;
 import pl.grupanet.eakademik.user.dto.StaffDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserProfileRepository {
     ResidentDto findByResidentId(@NonNull ResidentId residentId);
 
-    List<ResidentDto> findByResidentIds(@NonNull List<ResidentId> residentId);
+    Map<ResidentId, ResidentDto> findByResidentIds(@NonNull List<ResidentId> residentId);
 
     StaffDto findByStaffId(@NonNull StaffId staffId);
 
-    List<StaffDto> findByStaffIds(@NonNull List<StaffId> staffIds);
+    Map<StaffId, StaffDto> findByStaffIds(@NonNull List<StaffId> staffIds);
 }
