@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,13 +50,18 @@ class AuthE2ETest {
     @TestConfiguration
     static class ProtectedTestControllerConfig {
 
-        @RestController
-        static class ProtectedTestController {
+        @Bean
+        public ProtectedTestController protectedTestController() {
+            return new ProtectedTestController();
+        }
+    }
 
-            @GetMapping("/api/protected")
-            public String protectedEndpoint() {
-                return "ok";
-            }
+    @RestController
+    static class ProtectedTestController {
+
+        @GetMapping("/api/v1/protected")
+        public String protectedEndpoint() {
+            return "ok";
         }
     }
 
