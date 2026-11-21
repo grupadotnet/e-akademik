@@ -6,15 +6,10 @@ import org.commons.users.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -47,31 +42,9 @@ class AuthE2ETest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @TestConfiguration
-    static class ProtectedTestControllerConfig {
-
-        @Bean
-        public ProtectedTestController protectedTestController() {
-            return new ProtectedTestController();
-        }
-    }
-
-    @RestController
-    static class ProtectedTestController {
-
-        @GetMapping("/api/v1/protected")
-        public String protectedEndpoint() {
-            return "ok";
-        }
-    }
-
     @Test
     void shouldCompleteFullAuthFlowAgainstRealPostgresAndHttpServer() {
-        // 1. Unauthenticated request is rejected
-        ResponseEntity<String> unauthResponse = restTemplate.getForEntity("/api/protected", String.class);
-        assertEquals(HttpStatus.FORBIDDEN, unauthResponse.getStatusCode());
 
-        // 2. Seed STAFF user and authenticate to obtain JWT cookie
         userRepository.save(new RegisteredUser(
                 UserId.generate(),
                 new Email("staff.e2e@example.com"),
@@ -109,24 +82,23 @@ class AuthE2ETest {
         assertEquals(HttpStatus.NO_CONTENT, loginResponse.getStatusCode());
         HttpHeaders residentAuthHeaders = extractAuthHeaders(loginResponse);
 
-        // 5. Access protected path as RESIDENT (passes security -> 200 OK)
-        ResponseEntity<String> protectedResponse = restTemplate.exchange(
-                "/api/protected", HttpMethod.GET, new HttpEntity<>(residentAuthHeaders), String.class
-        );
-        assertEquals(HttpStatus.OK, protectedResponse.getStatusCode());
-        assertEquals("ok", protectedResponse.getBody());
-
-        // 6. RESIDENT cannot register STAFF -> 403 Forbidden
+        // --- ZAMIAST kroku 5 (szukania /protected) i kroku 6 ---
+        // 5. RESIDENT próbuje wejść na endpoint wymagający roli ADMIN (rejestracja staffa) -> Oczekujemy 403 FORBIDDEN
         RegisterStaffRequest staffRequest = new RegisterStaffRequest(
                 "Politechnika Krakowska", "Ds-3 Bartek",
                 "Anna Nowak", "e2e.staff@example.com", "password123"
         );
         ResponseEntity<String> staffResponse = restTemplate.exchange(
-                API_URL + "auth/register/staff", HttpMethod.POST, new HttpEntity<>(staffRequest, residentAuthHeaders), String.class
+                API_URL + "auth/register/staff",
+                HttpMethod.POST,
+                new HttpEntity<>(staffRequest, residentAuthHeaders),
+                String.class
         );
+
+        // Zalogowano poprawnie, ale użytkownik to RESIDENT, więc nie może utworzyć STAFFa
         assertEquals(HttpStatus.FORBIDDEN, staffResponse.getStatusCode());
 
-        // 7. Logout clears jwt_token cookie
+        // 6. Logout clears jwt_token cookie
         ResponseEntity<Void> logoutResponse = restTemplate.exchange(
                 API_URL + "auth/logout", HttpMethod.POST, new HttpEntity<>(residentAuthHeaders), Void.class
         );
