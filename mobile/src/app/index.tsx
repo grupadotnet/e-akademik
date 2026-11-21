@@ -1,9 +1,5 @@
-import { Text, View } from 'react-native';
+import StartScreen from "@/screens/start-screen";
 
 export default function Index() {
-  return (
-    <View>
-      <Text>e-akademik</Text>
-    </View>
-  );
+  return <StartScreen />;
 }
