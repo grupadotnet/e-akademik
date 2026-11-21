@@ -10,7 +10,10 @@ import java.util.List;
 
 public interface UserProfileRepository {
     ResidentDto findByResidentId(@NonNull ResidentId residentId);
+
     List<ResidentDto> findByResidentIds(@NonNull List<ResidentId> residentId);
+
     StaffDto findByStaffId(@NonNull StaffId staffId);
+
     List<StaffDto> findByStaffIds(@NonNull List<StaffId> staffIds);
 }
