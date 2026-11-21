@@ -43,6 +43,7 @@ class AuthControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldRegisterResidentAndReturnCreated() throws Exception {
         RegisterResidentRequest request = new RegisterResidentRequest(
                 "Politechnika Krakowska",
@@ -78,6 +79,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldForbidStaffRegistrationForResidentRole() throws Exception {
         RegisterResidentRequest residentRequest = new RegisterResidentRequest(
                 "Politechnika Krakowska",
@@ -136,6 +138,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldLoginAndSetHttpOnlyJwtCookie() throws Exception {
         RegisterResidentRequest registerRequest = new RegisterResidentRequest(
                 "Politechnika Krakowska",
