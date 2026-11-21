@@ -49,6 +49,159 @@ class AppLaundryReservationService implements LaundryReservationService {
     }
 
     @Override
+    public List<ReservationDTO> findReservations(UUID finderUUID, LocalDateTime reservationDate,
+                                                 String roomToReserveId, List<ReservationStatus> statuses) {
+        UserData userData = resolveUserData(finderUUID);
+        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
+        RoomNumber roomNumber = new RoomNumber(roomToReserveId);
+
+        return findReservationsForRoom(specification, userData, finderUUID, reservationDate, roomNumber, statuses);
+    }
+
+    @Override
+    public ReservationByRoomsDTO findReservations(UUID finderUUID, LocalDateTime reservationDate,
+                                                  List<ReservationStatus> statuses) {
+        UserData userData = resolveUserData(finderUUID);
+        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
+
+        return findReservationsForAllRooms(specification, userData, finderUUID, reservationDate, statuses);
+    }
+
+    @Override
+    public ReservationByDateDTO findReservations(UUID finderUUID, List<LocalDateTime> reservationDates,
+                                                 List<ReservationStatus> statuses) {
+        UserData userData = resolveUserData(finderUUID);
+        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
+
+        HashMap<LocalDate, ReservationByRoomsDTO> dates = new HashMap<>();
+        for (LocalDateTime reservationDate : reservationDates) {
+            dates.put(
+                    reservationDate.toLocalDate(),
+                    findReservationsForAllRooms(specification, userData, finderUUID, reservationDate, statuses)
+            );
+        }
+
+        return new ReservationByDateDTO(dates);
+    }
+
+    private ReservationByRoomsDTO findReservationsForAllRooms(DormitorySpecification specification,
+                                                              UserData userData,
+                                                              UUID finderUUID,
+                                                              LocalDateTime reservationDate,
+                                                              List<ReservationStatus> statuses) {
+        SlotsRoomSpecification slotsRoomSpecification = specification.slotsRoomSpecification();
+        HashMap<String, List<ReservationDTO>> rooms = new HashMap<>();
+
+        for (RoomNumber roomNumber : slotsRoomSpecification.getRooms()) {
+            List<ReservationDTO> roomReservations = findReservationsForRoom(
+                    specification, userData, finderUUID, reservationDate, roomNumber, statuses
+            );
+            rooms.put(roomNumber.toString(), roomReservations);
+        }
+
+        return new ReservationByRoomsDTO(rooms);
+    }
+
+    private List<ReservationDTO> findReservationsForRoom(DormitorySpecification specification,
+                                                         UserData userData,
+                                                         UUID finderUUID,
+                                                         LocalDateTime reservationDate,
+                                                         RoomNumber roomNumber,
+                                                         List<ReservationStatus> statuses) {
+        SlotsCalculator slotsCalculator = specification.slotsRoomSpecification()
+                .getCalculatorByRoomName(roomNumber)
+                .choose(reservationDate);
+
+        return getTermSnapshots(
+                slotsCalculator,
+                roomNumber,
+                userData,
+                finderUUID,
+                slotsCalculator.generateSlotIds(),
+                statuses,
+                reservationDate.toLocalDate()
+        );
+    }
+
+    private List<ReservationDTO> getTermSnapshots(@NonNull SlotsCalculator slotsCalculator,
+                                                  @NonNull RoomNumber roomNumber,
+                                                  @NonNull UserData userData,
+                                                  @NonNull UUID finderUUID,
+                                                  @NonNull List<SlotNumber> slotNumbers,
+                                                  @NonNull List<ReservationStatus> statuses,
+                                                  @NonNull LocalDate reservationDate) {
+        DormitoryId dormitoryId = userData.dormitoryId();
+        List<TermSnapshot> termSnapshots = laundryReservationRepository.findAllTermsForSlotAndDate(
+                dormitoryId,
+                slotNumbers,
+                statuses,
+                List.of(reservationDate)
+        );
+
+        Map<ReservationId, TermSnapshot> termSnapshotMap = termSnapshots.stream()
+                .collect(Collectors.toMap(TermSnapshot::id, Function.identity(), (first, second) -> first));
+
+        List<TermSnapshot> visibleSnapshots = new ArrayList<>();
+        for (SlotNumber slotId : slotNumbers) {
+            ReservationId expectedId = new ReservationId(dormitoryId, roomNumber, slotId);
+            TermSnapshot termSnapshot = termSnapshotMap.getOrDefault(
+                    expectedId,
+                    TermSnapshot.createOpenTerm(expectedId, reservationDate)
+            );
+
+            if (statuses.contains(termSnapshot.status()) && isVisibleForUser(termSnapshot, finderUUID, userData.isStaff())) {
+                visibleSnapshots.add(termSnapshot);
+            }
+        }
+
+        List<ResidentId> residentIds = visibleSnapshots.stream()
+                .map(TermSnapshot::ownerId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        List<StaffId> staffIds = visibleSnapshots.stream()
+                .map(TermSnapshot::acceptedById)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<ResidentId, ResidentDto> residentsById = residentIds.isEmpty()
+                ? Map.of()
+                : userProfileRepository.findByResidentIds(residentIds);
+
+        Map<StaffId, StaffDto> staffById = staffIds.isEmpty()
+                ? Map.of()
+                : userProfileRepository.findByStaffIds(staffIds);
+
+        return visibleSnapshots.stream()
+                .map(snapshot -> toDto(
+                        snapshot,
+                        slotsCalculator.calculateSlotHoursById(snapshot.id().slotNumber()),
+                        snapshot.ownerId() != null ? residentsById.get(snapshot.ownerId()) : null,
+                        snapshot.acceptedById() != null ? staffById.get(snapshot.acceptedById()) : null
+                ))
+                .toList();
+    }
+
+    private boolean isVisibleForUser(TermSnapshot snapshot, UUID finderUUID, boolean isStaff) {
+        if (isStaff || snapshot.ownerId() == null) {
+            return true;
+        }
+        return snapshot.ownerId().equals(new ResidentId(finderUUID));
+    }
+
+    private UserData resolveUserData(@NonNull UUID finderUUID) {
+        try {
+            ResidentDto residentDto = userProfileRepository.findByResidentId(new ResidentId(finderUUID));
+            return new UserData(residentDto.dormitoryId(), false);
+        } catch (Exception e) {
+            StaffDto staffDto = userProfileRepository.findByStaffId(new StaffId(finderUUID));
+            return new UserData(staffDto.dormitoryId(), true);
+        }
+    }
+
+    @Override
     public ReservationDTO reserve(UUID residentUUID, LocalDateTime reservationDate,
                                   String roomToReserveId, int slotNumberId) {
         ReservationContextDto context = reservationContext.prepareContext(
@@ -116,42 +269,6 @@ class AppLaundryReservationService implements LaundryReservationService {
         return toDto(termSnapshot, context.timeSlot(), context.residentDto(), null);
     }
 
-    @Override
-    public List<ReservationDTO> findReservations(UUID finderUUID, LocalDateTime reservationDate,
-                                                 String roomToReserveId, List<ReservationStatus> statuses) {
-        UserData userData = resolveUserData(finderUUID);
-        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
-        RoomNumber roomNumber = new RoomNumber(roomToReserveId);
-
-        return findReservationsForRoom(specification, userData, finderUUID, reservationDate, roomNumber, statuses);
-    }
-
-    @Override
-    public ReservationByRoomsDTO findReservations(UUID finderUUID, LocalDateTime reservationDate,
-                                                  List<ReservationStatus> statuses) {
-        UserData userData = resolveUserData(finderUUID);
-        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
-
-        return findReservationsForAllRooms(specification, userData, finderUUID, reservationDate, statuses);
-    }
-
-    @Override
-    public ReservationByDateDTO findReservations(UUID finderUUID, List<LocalDateTime> reservationDates,
-                                                 List<ReservationStatus> statuses) {
-        UserData userData = resolveUserData(finderUUID);
-        DormitorySpecification specification = dormitoryRepository.get(userData.dormitoryId());
-
-        HashMap<LocalDate, ReservationByRoomsDTO> dates = new HashMap<>();
-        for (LocalDateTime reservationDate : reservationDates) {
-            dates.put(
-                    reservationDate.toLocalDate(),
-                    findReservationsForAllRooms(specification, userData, finderUUID, reservationDate, statuses)
-            );
-        }
-
-        return new ReservationByDateDTO(dates);
-    }
-
     private ReservationDTO toDto(@NonNull TermSnapshot termSnapshot,
                                  @NonNull TimeSlot timeSlot,
                                  ResidentDto residentDto,
@@ -166,113 +283,4 @@ class AppLaundryReservationService implements LaundryReservationService {
                 approvedBy != null ? approvedBy.toCommonDto() : null
         );
     }
-
-    private ReservationByRoomsDTO findReservationsForAllRooms(DormitorySpecification specification,
-                                                              UserData userData,
-                                                              UUID finderUUID,
-                                                              LocalDateTime reservationDate,
-                                                              List<ReservationStatus> statuses) {
-        SlotsRoomSpecification slotsRoomSpecification = specification.slotsRoomSpecification();
-        HashMap<String, List<ReservationDTO>> rooms = new HashMap<>();
-
-        for (RoomNumber roomNumber : slotsRoomSpecification.getRooms()) {
-            List<ReservationDTO> roomReservations = findReservationsForRoom(
-                    specification, userData, finderUUID, reservationDate, roomNumber, statuses
-            );
-            rooms.put(roomNumber.toString(), roomReservations);
-        }
-
-        return new ReservationByRoomsDTO(rooms);
-    }
-
-    private List<ReservationDTO> findReservationsForRoom(DormitorySpecification specification,
-                                                         UserData userData,
-                                                         UUID finderUUID,
-                                                         LocalDateTime reservationDate,
-                                                         RoomNumber roomNumber,
-                                                         List<ReservationStatus> statuses) {
-        SlotsCalculator slotsCalculator = specification.slotsRoomSpecification()
-                .getCalculatorByRoomName(roomNumber)
-                .choose(reservationDate);
-
-        List<ReservationDTO> reservationDTOs = getTermSnapshots(
-                slotsCalculator,
-                roomNumber,
-                userData.dormitoryId(),
-                slotsCalculator.generateSlotIds(),
-                statuses,
-                reservationDate.toLocalDate()
-        );
-
-        return filterVisibleReservations(reservationDTOs, finderUUID, userData.isStaff());
-    }
-
-    private List<ReservationDTO> filterVisibleReservations(List<ReservationDTO> reservations,
-                                                           UUID finderUUID,
-                                                           boolean isStaff) {
-        if (isStaff) {
-            return reservations;
-        }
-        return reservations.stream()
-                .filter(dto -> dto.reservedBy() == null || dto.reservedBy().userId().equals(finderUUID))
-                .toList();
-    }
-
-    private List<ReservationDTO> getTermSnapshots(@NonNull SlotsCalculator slotsCalculator,
-                                                  @NonNull RoomNumber roomNumber,
-                                                  @NonNull DormitoryId dormitoryId,
-                                                  @NonNull List<SlotNumber> slotNumbers,
-                                                  @NonNull List<ReservationStatus> statuses,
-                                                  @NonNull LocalDate reservationDate) {
-        List<TermSnapshot> termSnapshots = laundryReservationRepository.findAllTermsForSlotAndDate(
-                dormitoryId,
-                slotNumbers,
-                statuses,
-                List.of(reservationDate)
-        );
-
-        Map<ReservationId, TermSnapshot> termSnapshotMap = termSnapshots.stream()
-                .collect(Collectors.toMap(TermSnapshot::id, Function.identity(), (first, second) -> first));
-
-        Map<ResidentId, ResidentDto> residentsCache = new HashMap<>();
-        Map<StaffId, StaffDto> staffCache = new HashMap<>();
-
-        List<ReservationDTO> reservationDTOs = new ArrayList<>();
-
-        for (SlotNumber slotId : slotNumbers) {
-            ReservationId expectedId = new ReservationId(dormitoryId, roomNumber, slotId);
-            TermSnapshot termSnapshot = termSnapshotMap.getOrDefault(
-                    expectedId,
-                    TermSnapshot.createOpenTerm(expectedId, reservationDate)
-            );
-
-            if (statuses.contains(termSnapshot.status())) {
-                ResidentDto residentDto = termSnapshot.ownerId() != null
-                        ? residentsCache.computeIfAbsent(termSnapshot.ownerId(), userProfileRepository::findByResidentId)
-                        : null;
-                StaffDto staffDto = termSnapshot.acceptedById() != null
-                        ? staffCache.computeIfAbsent(termSnapshot.acceptedById(), userProfileRepository::findByStaffId)
-                        : null;
-
-                reservationDTOs.add(toDto(
-                        termSnapshot,
-                        slotsCalculator.calculateSlotHoursById(slotId),
-                        residentDto,
-                        staffDto
-                ));
-            }
-        }
-        return reservationDTOs;
-    }
-
-    private UserData resolveUserData(@NonNull UUID finderUUID) {
-        try {
-            ResidentDto residentDto = userProfileRepository.findByResidentId(new ResidentId(finderUUID));
-            return new UserData(residentDto.dormitoryId(), false);
-        } catch (Exception e) {
-            StaffDto staffDto = userProfileRepository.findByStaffId(new StaffId(finderUUID));
-            return new UserData(staffDto.dormitoryId(), true);
-        }
-    }
-
 }

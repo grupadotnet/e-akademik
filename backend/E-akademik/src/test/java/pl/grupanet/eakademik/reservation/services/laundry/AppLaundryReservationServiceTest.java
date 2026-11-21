@@ -35,6 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -265,7 +266,6 @@ class AppLaundryReservationServiceTest {
         ResidentId otherResidentId = new ResidentId(otherResidentUuid);
 
         ResidentDto finderDto = createResidentDto(finderId, dormitoryId);
-        ResidentDto otherResidentDto = createResidentDto(otherResidentId, dormitoryId);
 
         RoomNumber roomNumber = new RoomNumber("101A");
         SlotNumber slot1 = new SlotNumber(1);
@@ -284,7 +284,7 @@ class AppLaundryReservationServiceTest {
         TermSnapshot snap2 = createTermSnapshot(resId2, otherResidentId, null, occupiedStatus, date);
 
         when(userProfileRepository.findByResidentId(finderId)).thenReturn(finderDto);
-        when(userProfileRepository.findByResidentId(otherResidentId)).thenReturn(otherResidentDto);
+        when(userProfileRepository.findByResidentIds(List.of(finderId))).thenReturn(Map.of(finderId, finderDto));
         when(dormitoryRepository.get(dormitoryId)).thenReturn(dormitorySpecification);
         when(dormitorySpecification.slotsRoomSpecification().getCalculatorByRoomName(roomNumber).choose(dateTime))
                 .thenReturn(slotsCalculator);
@@ -299,6 +299,9 @@ class AppLaundryReservationServiceTest {
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(ReservationDTO::slotNumber).containsExactly(1, 3);
+        verify(userProfileRepository).findByResidentIds(List.of(finderId));
+        verify(userProfileRepository, never()).findByResidentId(otherResidentId);
+        verifyNoMoreInteractions(userProfileRepository);
     }
 
     @Test
@@ -330,8 +333,10 @@ class AppLaundryReservationServiceTest {
         when(userProfileRepository.findByResidentId(new ResidentId(staffUuid)))
                 .thenThrow(new IllegalStateException("Not a resident"));
         when(userProfileRepository.findByStaffId(staffId)).thenReturn(staffDto);
-        when(userProfileRepository.findByResidentId(resident1Id)).thenReturn(resident1Dto);
-        when(userProfileRepository.findByResidentId(resident2Id)).thenReturn(resident2Dto);
+        when(userProfileRepository.findByResidentIds(List.of(resident1Id, resident2Id)))
+                .thenReturn(Map.of(resident1Id, resident1Dto, resident2Id, resident2Dto));
+        when(userProfileRepository.findByStaffIds(List.of(staffId)))
+                .thenReturn(Map.of(staffId, staffDto));
 
         when(dormitoryRepository.get(dormitoryId)).thenReturn(dormitorySpecification);
         when(dormitorySpecification.slotsRoomSpecification().getCalculatorByRoomName(roomNumber).choose(dateTime))
@@ -347,7 +352,9 @@ class AppLaundryReservationServiceTest {
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(ReservationDTO::slotNumber).containsExactly(1, 2);
-        verify(userProfileRepository, times(2)).findByStaffId(staffId);
+        verify(userProfileRepository, times(1)).findByStaffId(staffId);
+        verify(userProfileRepository, times(1)).findByResidentIds(List.of(resident1Id, resident2Id));
+        verify(userProfileRepository, times(1)).findByStaffIds(List.of(staffId));
     }
 
     @Test
@@ -384,6 +391,8 @@ class AppLaundryReservationServiceTest {
 
         verify(userProfileRepository, times(1)).findByStaffId(staffId);
         verify(dormitoryRepository, times(1)).get(dormitoryId);
+        verify(userProfileRepository, never()).findByResidentIds(any());
+        verify(userProfileRepository, never()).findByStaffIds(any());
     }
 
     @Test
@@ -395,7 +404,6 @@ class AppLaundryReservationServiceTest {
         ResidentId otherResidentId = new ResidentId(otherResidentUuid);
 
         ResidentDto residentDto = createResidentDto(residentId, dormitoryId);
-        ResidentDto otherResidentDto = createResidentDto(otherResidentId, dormitoryId);
 
         RoomNumber room1 = new RoomNumber("101A");
         RoomNumber room2 = new RoomNumber("202B");
@@ -410,7 +418,7 @@ class AppLaundryReservationServiceTest {
         TermSnapshot otherSnap = createTermSnapshot(new ReservationId(dormitoryId, room2, slot2), otherResidentId, null, occupiedStatus, date);
 
         when(userProfileRepository.findByResidentId(residentId)).thenReturn(residentDto);
-        when(userProfileRepository.findByResidentId(otherResidentId)).thenReturn(otherResidentDto);
+        when(userProfileRepository.findByResidentIds(List.of(residentId))).thenReturn(Map.of(residentId, residentDto));
         when(dormitoryRepository.get(dormitoryId)).thenReturn(dormitorySpecification);
         when(dormitorySpecification.slotsRoomSpecification()).thenReturn(slotsRoomSpecification);
         when(slotsRoomSpecification.getRooms()).thenReturn(List.of(room1, room2));
@@ -430,7 +438,9 @@ class AppLaundryReservationServiceTest {
                 .extracting(ReservationDTO::slotNumber)
                 .containsExactly(1);
 
-        verify(userProfileRepository, times(2)).findByResidentId(residentId);
+        verify(userProfileRepository, times(1)).findByResidentId(residentId);
+        verify(userProfileRepository, times(1)).findByResidentIds(List.of(residentId));
+        verify(userProfileRepository, never()).findByResidentId(otherResidentId);
         verify(dormitoryRepository, times(1)).get(dormitoryId);
     }
 }
