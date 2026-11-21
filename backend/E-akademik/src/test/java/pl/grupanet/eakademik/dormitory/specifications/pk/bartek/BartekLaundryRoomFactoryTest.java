@@ -1,6 +1,7 @@
 package pl.grupanet.eakademik.dormitory.specifications.pk.bartek;
 
 import org.commons.Name;
+import org.commons.RoomNumber;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;
 import pl.grupanet.eakademik.dormitory.slots.SlotsRoomSpecification;
@@ -24,7 +25,7 @@ class BartekLaundryRoomFactoryTest {
 
         SlotsRoomSpecification.Builder expectedSpecificationBuilder = new SlotsRoomSpecification.Builder();
         for (String roomNumber : expectedRooms) {
-            ChooseSlotsCalculator chooser = rooms.getCalculatorByRoomName(new Name(roomNumber));
+            ChooseSlotsCalculator chooser = rooms.getCalculatorByRoomName(new RoomNumber(roomNumber));
             assertNotNull(chooser);
             assertEquals(expectedChooser, chooser);
             expectedSpecificationBuilder.add(roomNumber, expectedChooser);
