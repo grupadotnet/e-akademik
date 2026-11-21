@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
+import pl.grupanet.eakademik.controllers.ApiConstants;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -51,7 +52,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -69,7 +70,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
@@ -85,12 +86,12 @@ class AuthControllerTest {
                 "resident.role@example.com",
                 "password123"
         );
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(residentRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(ApiConstants.API_URL+"auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("resident.role@example.com", "password123"))))
                 .andExpect(status().isNoContent())
@@ -107,7 +108,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/staff")
                         .cookie(residentCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
@@ -125,7 +126,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -144,12 +145,12 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/resident")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post(ApiConstants.API_URL+"api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("login.user@example.com", "password123"))))
                 .andExpect(status().isNoContent())
@@ -171,7 +172,7 @@ class AuthControllerTest {
                 Role.ADMIN
         ));
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(ApiConstants.API_URL+"auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("admin@example.com", "adminpass123"))))
                 .andExpect(status().isNoContent())
@@ -188,7 +189,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/register/staff")
                         .cookie(jwtCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
@@ -197,7 +198,7 @@ class AuthControllerTest {
 
     @Test
     void shouldClearJwtCookieOnLogout() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post(ApiConstants.API_URL+"auth/logout"))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().exists("jwt_token"))
                 .andExpect(cookie().maxAge("jwt_token", 0))

@@ -18,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pl.grupanet.eakademik.authentication.jwt.TokenService;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
+import pl.grupanet.eakademik.controllers.ApiVersions;
 
 @Configuration
 @EnableMethodSecurity
@@ -63,14 +64,18 @@ public class SecurityConfiguration {
                         ).permitAll();
                     }
 
-                    auth.requestMatchers(
-                                    "/api/auth/register/resident",
-                                    "/api/auth/login",
-                                    "/api/auth/logout",
-                                    "/error"
-                            ).permitAll()
-                            .requestMatchers("/api/auth/register/staff").hasRole(Role.ADMIN.toString())
-                            .anyRequest().authenticated();
+                    for (ApiVersions value : ApiVersions.values()) {
+                        auth.requestMatchers(
+                                        value.getPath() + "auth/register/resident",
+                                        value.getPath() + "auth/login",
+                                        value.getPath() + "auth/logout"
+                                ).permitAll()
+                                .requestMatchers(value.getPath() + "auth/register/resident").
+                                hasRole(Role.STAFF.toString())
+                                .requestMatchers(value.getPath() + "auth/register/staff").
+                                hasRole(Role.ADMIN.toString())
+                                .anyRequest().authenticated();
+                    }
                 })
                 .addFilterBefore(
                         new JwtAuthFilter(tokenService, userDetailsService()),
