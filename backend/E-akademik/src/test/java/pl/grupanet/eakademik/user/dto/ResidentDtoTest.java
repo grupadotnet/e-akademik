@@ -191,7 +191,7 @@ class ResidentDtoTest {
                 id.getIdAsUUID(),
                 name.toString(),
                 surname.toString(),
-                dormitoryId.toString());
+                roomNumber.toString());
 
         assertEquals(expectedResidentIdDto, residentDto.toCommonDto());
     }

@@ -1,7 +1,7 @@
 package pl.grupanet.eakademik.dormitory.slots;
 
 import lombok.NonNull;
-import org.commons.TimeSlot;
+import org.commons.time.TimeSlot;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
