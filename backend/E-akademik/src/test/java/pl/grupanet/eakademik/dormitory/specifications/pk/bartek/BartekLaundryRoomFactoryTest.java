@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.dormitory.specifications.pk.bartek;
 
-import org.commons.Name;
 import org.commons.RoomNumber;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.slots.ChooseSlotsCalculator;

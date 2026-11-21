@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.dormitory.slots;
 
-import org.commons.Name;
 import org.commons.RoomNumber;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +36,7 @@ class SlotsRoomSpecificationTest {
 
         assertEquals(calc1, spec.getCalculatorByRoomName(new RoomNumber("Pralnia 1")));
         assertEquals(calc2, spec.getCalculatorByRoomName(new RoomNumber("Pralnia 2")));
-        assertEquals(List.of(new RoomNumber("Pralnia 1"), new RoomNumber("Pralnia 2")), spec.getRooms());
+        assertEquals(List.of(new RoomNumber("Pralnia 2"), new RoomNumber("Pralnia 1")), spec.getRooms());
     }
 
     @Test
