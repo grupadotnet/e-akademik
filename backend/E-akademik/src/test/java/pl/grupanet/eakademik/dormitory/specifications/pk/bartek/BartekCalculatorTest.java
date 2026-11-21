@@ -1,7 +1,7 @@
 package pl.grupanet.eakademik.dormitory.specifications.pk.bartek;
 
 import org.commons.SlotNumber;
-import org.commons.TimeSlot;
+import org.commons.time.TimeSlot;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.bartek.BartekCalculator;
 
