@@ -6,10 +6,13 @@ import org.commons.users.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -41,6 +44,19 @@ class AuthE2ETest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @TestConfiguration
+    static class ProtectedTestControllerConfig {
+
+        @RestController
+        static class ProtectedTestController {
+
+            @GetMapping("/api/protected")
+            public String protectedEndpoint() {
+                return "ok";
+            }
+        }
+    }
 
     @Test
     void shouldCompleteFullAuthFlowAgainstRealPostgresAndHttpServer() {
@@ -86,11 +102,12 @@ class AuthE2ETest {
         assertEquals(HttpStatus.NO_CONTENT, loginResponse.getStatusCode());
         HttpHeaders residentAuthHeaders = extractAuthHeaders(loginResponse);
 
-        // 5. Access protected path as RESIDENT (passes security -> 404 Not Found)
+        // 5. Access protected path as RESIDENT (passes security -> 200 OK)
         ResponseEntity<String> protectedResponse = restTemplate.exchange(
                 "/api/protected", HttpMethod.GET, new HttpEntity<>(residentAuthHeaders), String.class
         );
-        assertEquals(HttpStatus.NOT_FOUND, protectedResponse.getStatusCode());
+        assertEquals(HttpStatus.OK, protectedResponse.getStatusCode());
+        assertEquals("ok", protectedResponse.getBody());
 
         // 6. RESIDENT cannot register STAFF -> 403 Forbidden
         RegisterStaffRequest staffRequest = new RegisterStaffRequest(
