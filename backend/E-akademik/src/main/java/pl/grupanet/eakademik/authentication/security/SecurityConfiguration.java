@@ -66,7 +66,6 @@ public class SecurityConfiguration {
 
                     for (ApiVersions value : ApiVersions.values()) {
                         auth.requestMatchers(
-                                        value.getPath() + "auth/register/resident",
                                         value.getPath() + "auth/login",
                                         value.getPath() + "auth/logout"
                                 ).permitAll()

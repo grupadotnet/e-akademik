@@ -10,6 +10,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import pl.grupanet.eakademik.controllers.ApiConstants;
+import pl.grupanet.eakademik.controllers.ApiVersions;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 )
 @Testcontainers
 class AuthE2ETest {
+    private static final String API_URL = ApiVersions.V1.getPath();
 
     @Container
     @ServiceConnection
@@ -39,12 +41,12 @@ class AuthE2ETest {
                 "Jan Kowalski", "e2e@example.com", "password123"
         );
         ResponseEntity<Void> registerResponse = restTemplate.postForEntity(
-                ApiConstants.API_URL+"auth/register/resident", registerRequest, Void.class
+                API_URL+"auth/register/resident", registerRequest, Void.class
         );
         assertEquals(HttpStatus.CREATED, registerResponse.getStatusCode());
 
         ResponseEntity<Void> loginResponse = restTemplate.postForEntity(
-                ApiConstants.API_URL+"auth/login",
+                API_URL+"auth/login",
                 new LoginRequest("e2e@example.com", "password123"),
                 Void.class
         );
@@ -72,12 +74,12 @@ class AuthE2ETest {
                 "Anna Nowak", "e2e.staff@example.com", "password123"
         );
         ResponseEntity<String> staffResponse = restTemplate.exchange(
-                ApiConstants.API_URL+"auth/register/staff", HttpMethod.POST, new HttpEntity<>(staffRequest, authHeaders), String.class
+                API_URL+"auth/register/staff", HttpMethod.POST, new HttpEntity<>(staffRequest, authHeaders), String.class
         );
         assertEquals(HttpStatus.FORBIDDEN, staffResponse.getStatusCode());
 
         ResponseEntity<Void> logoutResponse = restTemplate.exchange(
-                ApiConstants.API_URL+"auth/logout", HttpMethod.POST, new HttpEntity<>(authHeaders), Void.class
+                API_URL+"auth/logout", HttpMethod.POST, new HttpEntity<>(authHeaders), Void.class
         );
         assertEquals(HttpStatus.NO_CONTENT, logoutResponse.getStatusCode());
         List<String> logoutCookies = logoutResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
