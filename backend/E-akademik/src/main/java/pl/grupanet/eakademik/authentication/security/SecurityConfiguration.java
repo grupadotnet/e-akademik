@@ -77,9 +77,10 @@ public class SecurityConfiguration {
                                 .requestMatchers(value.getPath() + "auth/register/resident").
                                 hasRole(Role.STAFF.toString())
                                 .requestMatchers(value.getPath() + "auth/register/staff").
-                                hasRole(Role.ADMIN.toString())
-                                .anyRequest().authenticated();
+                                hasRole(Role.ADMIN.toString());
                     }
+
+                    auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(
                         new JwtAuthFilter(tokenService, userDetailsService()),
