@@ -9,10 +9,7 @@ import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ResidentDtoTest {
 
@@ -179,5 +176,23 @@ class ResidentDtoTest {
         ResidentDto second = new ResidentDto(id, name, surname, dormitoryId, new RoomNumber("205A"));
 
         assertNotEquals(first, second);
+    }
+
+    @Test
+    void shouldCreateIdDto() {
+        ResidentId id = new ResidentId(UUID.randomUUID());
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
+        DormitoryId dormitoryId = createDummyDormitoryId();
+        RoomNumber roomNumber = new RoomNumber("204B");
+
+        ResidentDto residentDto = new ResidentDto(id, name, surname, dormitoryId, roomNumber);
+        ResidentIdDto expectedResidentIdDto = new ResidentIdDto(
+                id.getIdAsUUID(),
+                name.toString(),
+                surname.toString(),
+                dormitoryId.toString());
+
+        assertEquals(expectedResidentIdDto, residentDto.toCommonDto());
     }
 }

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public class AppReservationService {
-    void reserve(UUID residentId, LocalDate date, int slotNumber){
+    void reserve(UUID residentId, LocalDate reservationDate, int slotNumber){
 
     }
 

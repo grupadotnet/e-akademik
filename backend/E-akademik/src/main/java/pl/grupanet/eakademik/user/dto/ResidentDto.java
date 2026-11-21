@@ -12,5 +12,8 @@ public record ResidentDto(
         @NonNull Name surname,
         @NonNull DormitoryId dormitoryId,
         @NonNull RoomNumber roomNumber
-        ) {
+) {
+    public ResidentIdDto toCommonDto() {
+        return new ResidentIdDto(id.getIdAsUUID(), name.toString(), surname.toString(), roomNumber.toString());
+    }
 }
