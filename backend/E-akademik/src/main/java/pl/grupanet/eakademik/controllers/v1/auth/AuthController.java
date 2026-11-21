@@ -20,10 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
-import pl.grupanet.eakademik.controllers.v1.ApiV1Constants;
 
 @RestController
-@RequestMapping(ApiV1Constants.API_URL + "auth")
+@RequestMapping( "auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "User registration, login, and JWT cookie session management")
 class AuthController {
