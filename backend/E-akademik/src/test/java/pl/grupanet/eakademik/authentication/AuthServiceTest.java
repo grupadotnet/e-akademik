@@ -28,7 +28,7 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private TokenService tokenService;
-    private AuthService authService;
+    private AppAuthService authService;
 
     @BeforeEach
     void setUp() {
@@ -37,7 +37,7 @@ class AuthServiceTest {
         authenticationManager = mock(AuthenticationManager.class);
         tokenService = mock(TokenService.class);
 
-        authService = new AuthService(
+        authService = new AppAuthService(
                 userRepository,
                 passwordEncoder,
                 authenticationManager,

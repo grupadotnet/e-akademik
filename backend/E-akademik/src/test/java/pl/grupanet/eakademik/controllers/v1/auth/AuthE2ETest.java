@@ -1,4 +1,4 @@
-package pl.grupanet.eakademik.authentication;
+package pl.grupanet.eakademik.controllers.v1.auth;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

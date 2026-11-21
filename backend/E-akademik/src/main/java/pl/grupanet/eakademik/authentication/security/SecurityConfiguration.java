@@ -1,5 +1,7 @@
 package pl.grupanet.eakademik.authentication.security;
 
+import org.commons.Role;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,23 +47,35 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            @Value("${springdoc.swagger-ui.enabled:true}") boolean swaggerEnabled
+    ) throws Exception {
         http.cors(Customizer.withDefaults())
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/auth/register/resident",
-                    "/api/auth/login",
-                    "/api/auth/logout",
-                    "/error"
-                ).permitAll()
-                .requestMatchers("/api/auth/register/staff").hasRole("ADMIN")
-                .anyRequest().authenticated())
-            .addFilterBefore(
-                new JwtAuthFilter(tokenService, userDetailsService()),
-                    UsernamePasswordAuthenticationFilter.class
-            );
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> {
+                    if (swaggerEnabled) {
+                        auth.requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll();
+                    }
+
+                    auth.requestMatchers(
+                                    "/api/auth/register/resident",
+                                    "/api/auth/login",
+                                    "/api/auth/logout",
+                                    "/error"
+                            ).permitAll()
+                            .requestMatchers("/api/auth/register/staff").hasRole(Role.ADMIN.toString())
+                            .anyRequest().authenticated();
+                })
+                .addFilterBefore(
+                        new JwtAuthFilter(tokenService, userDetailsService()),
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }

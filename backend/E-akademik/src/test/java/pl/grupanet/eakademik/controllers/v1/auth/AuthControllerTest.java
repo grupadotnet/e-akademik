@@ -1,4 +1,4 @@
-package pl.grupanet.eakademik.authentication;
+package pl.grupanet.eakademik.controllers.v1.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
