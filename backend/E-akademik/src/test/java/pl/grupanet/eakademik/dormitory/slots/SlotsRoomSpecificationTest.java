@@ -1,7 +1,9 @@
 package pl.grupanet.eakademik.dormitory.slots;
 
-import org.commons.Name;
+import org.commons.RoomNumber;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -16,7 +18,7 @@ class SlotsRoomSpecificationTest {
                 .add("Pralnia Parter", calculatorMock)
                 .build();
 
-        ChooseSlotsCalculator retrieved = spec.getCalculatorByRoomName(new Name("Pralnia Parter"));
+        ChooseSlotsCalculator retrieved = spec.getCalculatorByRoomName(new RoomNumber("Pralnia Parter"));
 
         assertNotNull(retrieved);
         assertEquals(calculatorMock, retrieved);
@@ -32,8 +34,9 @@ class SlotsRoomSpecificationTest {
                 .add("Pralnia 2", calc2)
                 .build();
 
-        assertEquals(calc1, spec.getCalculatorByRoomName(new Name("Pralnia 1")));
-        assertEquals(calc2, spec.getCalculatorByRoomName(new Name("Pralnia 2")));
+        assertEquals(calc1, spec.getCalculatorByRoomName(new RoomNumber("Pralnia 1")));
+        assertEquals(calc2, spec.getCalculatorByRoomName(new RoomNumber("Pralnia 2")));
+        assertEquals(List.of(new RoomNumber("Pralnia 2"), new RoomNumber("Pralnia 1")), spec.getRooms());
     }
 
     @Test
@@ -52,7 +55,7 @@ class SlotsRoomSpecificationTest {
                 .add("Pralnia Parter", calculatorMock)
                 .build();
 
-        ChooseSlotsCalculator retrieved = spec.getCalculatorByRoomName(new Name("Nieznana Pralnia"));
+        ChooseSlotsCalculator retrieved = spec.getCalculatorByRoomName(new RoomNumber("Nieznana Pralnia"));
 
         assertNull(retrieved);
     }
@@ -76,7 +79,7 @@ class SlotsRoomSpecificationTest {
 
         assertNotNull(defaultSpec);
 
-        ChooseSlotsCalculator retrievedCalculator = defaultSpec.getCalculatorByRoomName(new Name("room 1"));
+        ChooseSlotsCalculator retrievedCalculator = defaultSpec.getCalculatorByRoomName(new RoomNumber("room 1"));
 
         assertNotNull(retrievedCalculator);
         assertEquals(ChooseSlotsCalculator.defaultChooseCalculator, retrievedCalculator);

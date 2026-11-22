@@ -2,7 +2,7 @@ package pl.grupanet.eakademik.dormitory.slots;
 
 import lombok.NonNull;
 import org.commons.SlotNumber;
-import org.commons.TimeSlot;
+import org.commons.time.TimeSlot;
 
 import java.time.Duration;
 import java.time.LocalTime;

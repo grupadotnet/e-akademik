@@ -185,6 +185,16 @@ class TermSnapshotTest {
         assertNotEquals(withStaff, withoutStaff);
     }
 
+    @Test
+    void shouldCreateOpenTermSnapshot() {
+        ReservationId id = createDummyReservationId();
+        TermSnapshot termSnapshot = TermSnapshot.createOpenTerm(id, getDummyDate());
+
+        assertEquals(ReservationStatus.OPEN, termSnapshot.status());
+        assertNull(termSnapshot.ownerId());
+        assertNull(termSnapshot.acceptedById());
+    }
+
     private static LocalDate getDummyDate() {
         return LocalDate.now();
     }
