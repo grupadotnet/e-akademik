@@ -1,4 +1,4 @@
-package pl.grupanet.eakademik.authentication;
+package pl.grupanet.eakademik.controllers.v1.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
+import pl.grupanet.eakademik.controllers.ApiVersions;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class AuthControllerTest {
+    private static final String API_URL = ApiVersions.V1.getPath();
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,6 +43,7 @@ class AuthControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldRegisterResidentAndReturnCreated() throws Exception {
         RegisterResidentRequest request = new RegisterResidentRequest(
                 "Politechnika Krakowska",
@@ -51,7 +54,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(API_URL + "auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -69,13 +72,14 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldForbidStaffRegistrationForResidentRole() throws Exception {
         RegisterResidentRequest residentRequest = new RegisterResidentRequest(
                 "Politechnika Krakowska",
@@ -85,12 +89,12 @@ class AuthControllerTest {
                 "resident.role@example.com",
                 "password123"
         );
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(API_URL + "auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(residentRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("resident.role@example.com", "password123"))))
                 .andExpect(status().isNoContent())
@@ -107,7 +111,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .cookie(residentCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
@@ -125,7 +129,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -134,6 +138,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldLoginAndSetHttpOnlyJwtCookie() throws Exception {
         RegisterResidentRequest registerRequest = new RegisterResidentRequest(
                 "Politechnika Krakowska",
@@ -144,12 +149,12 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+        mockMvc.perform(post(API_URL + "auth/register/resident")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("login.user@example.com", "password123"))))
                 .andExpect(status().isNoContent())
@@ -171,7 +176,7 @@ class AuthControllerTest {
                 Role.ADMIN
         ));
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("admin@example.com", "adminpass123"))))
                 .andExpect(status().isNoContent())
@@ -188,7 +193,7 @@ class AuthControllerTest {
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .cookie(jwtCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
@@ -197,7 +202,7 @@ class AuthControllerTest {
 
     @Test
     void shouldClearJwtCookieOnLogout() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post(API_URL + "auth/logout"))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().exists("jwt_token"))
                 .andExpect(cookie().maxAge("jwt_token", 0))
