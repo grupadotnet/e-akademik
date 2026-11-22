@@ -177,4 +177,22 @@ class ResidentDtoTest {
 
         assertNotEquals(first, second);
     }
+
+    @Test
+    void shouldCreateIdDto() {
+        ResidentId id = new ResidentId(UUID.randomUUID());
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
+        DormitoryId dormitoryId = createDummyDormitoryId();
+        RoomNumber roomNumber = new RoomNumber("204B");
+
+        ResidentDto residentDto = new ResidentDto(id, name, surname, dormitoryId, roomNumber);
+        ResidentIdDto expectedResidentIdDto = new ResidentIdDto(
+                id.getIdAsUUID(),
+                name.toString(),
+                surname.toString(),
+                roomNumber.toString());
+
+        assertEquals(expectedResidentIdDto, residentDto.toCommonDto());
+    }
 }

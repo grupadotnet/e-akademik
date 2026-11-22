@@ -1,7 +1,7 @@
 package pl.grupanet.eakademik.dormitory.slots;
 
 import org.commons.SlotNumber;
-import org.commons.TimeSlot;
+import org.commons.time.TimeSlot;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;

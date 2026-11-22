@@ -15,6 +15,9 @@ public record TermSnapshot(
         ResidentId ownerId,
         StaffId acceptedById
 ) {
+    public static TermSnapshot createOpenTerm(@NonNull final ReservationId id, @NonNull final LocalDate localDate){
+        return new TermSnapshot(id, ReservationStatus.OPEN, localDate, null, null);
+    }
 
     @Override
     public boolean equals(Object o) {

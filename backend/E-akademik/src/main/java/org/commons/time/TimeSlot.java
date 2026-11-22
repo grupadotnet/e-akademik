@@ -1,4 +1,4 @@
-package org.commons;
+package org.commons.time;
 
 import java.time.LocalTime;
 

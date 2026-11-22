@@ -149,4 +149,21 @@ class StaffDtoTest {
 
         assertNotEquals(first, second);
     }
+
+    @Test
+    void shouldCreateIdDto() {
+        StaffId id = new StaffId(UUID.randomUUID());
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
+        DormitoryId dormitoryId = createDummyDormitoryId();
+
+        StaffDto staffDto = new StaffDto(id, name, surname, dormitoryId);
+        StaffIdDto expecedStaffIdDto = new StaffIdDto(
+                id.getIdAsUUID(),
+                name.toString(),
+                surname.toString()
+        );
+
+        assertEquals(expecedStaffIdDto, staffDto.toCommonDto());
+    }
 }
