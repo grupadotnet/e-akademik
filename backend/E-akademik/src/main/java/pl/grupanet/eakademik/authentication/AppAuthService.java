@@ -3,6 +3,8 @@ package pl.grupanet.eakademik.authentication;
 import org.commons.Email;
 import org.commons.Password;
 import org.commons.Role;
+import org.commons.users.ResidentId;
+import org.commons.users.StaffId;
 import org.commons.users.UserId;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,17 +30,20 @@ class AppAuthService implements AuthService {
 
     @Transactional
     @Override
-    public void registerResident(Email email, Password password) {
-        registerUser(email, password, Role.RESIDENT);
+    public ResidentId registerResident(Email email, Password password) {
+        UserId id = registerUser(email, password, Role.RESIDENT);
+        return new ResidentId(id.getIdAsUUID());
+
     }
 
     @Transactional
     @Override
-    public void registerStaff(Email email, Password password) {
-        registerUser(email, password, Role.STAFF);
+    public StaffId registerStaff(Email email, Password password) {
+        UserId id = registerUser(email, password, Role.STAFF);
+        return new StaffId(id.getIdAsUUID());
     }
 
-    private void registerUser(Email email, Password password, Role role) {
+    private UserId registerUser(Email email, Password password, Role role) {
         if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException(email);
         }
@@ -50,7 +55,8 @@ class AppAuthService implements AuthService {
                 role
         );
 
-        userRepository.save(user);
+        RegisteredUser createdUser = userRepository.save(user);
+        return createdUser.id();
     }
 
     public String loginUser(Email email, Password password) {

@@ -2,6 +2,8 @@ package pl.grupanet.eakademik.authentication.security;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.Cookie;
+import org.commons.users.ResidentId;
+import org.commons.users.StaffId;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +25,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
 import pl.grupanet.eakademik.controllers.ApiVersions;
+import pl.grupanet.eakademik.user.UserProfileRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -41,10 +45,11 @@ class SecurityConfigurationTest {
 
     private static final String VALID_RESIDENT_PAYLOAD = """
             {
-                "universityName": "Politechnika Krakowska",
+                "universityName": "POLITECHNIKA_KRAKOWSKA",
                 "dormitoryName": "Ds-3 Bartek",
                 "roomNumber": "111B",
-                "fullName": "Jan Kowalski",
+                "name": "Jan",
+                "surname": "Kowalski",
                 "email": "resident@example.com",
                 "password": "password123"
             }
@@ -52,9 +57,10 @@ class SecurityConfigurationTest {
 
     private static final String VALID_STAFF_PAYLOAD = """
             {
-                "universityName": "Politechnika Krakowska",
+                "universityName": "POLITECHNIKA_KRAKOWSKA",
                 "dormitoryName": "Ds-3 Bartek",
-                "fullName": "Anna Nowak",
+                "name": "Anna",
+                "surname": "Nowak",
                 "email": "staff@example.com",
                 "password": "password123"
             }
@@ -90,6 +96,9 @@ class SecurityConfigurationTest {
 
     @MockitoBean
     private CookieService cookieService;
+
+    @MockitoBean
+    private UserProfileRepository userProfileRepository;
 
     // --- 1. Security beans and filter chain order ---
 
@@ -151,6 +160,8 @@ class SecurityConfigurationTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void shouldAllowResidentRegistrationForStaffRole() throws Exception {
+        when(authService.registerResident(any(), any())).thenReturn(new ResidentId(UUID.randomUUID()));
+
         mockMvc.perform(post(API_URL + "auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_RESIDENT_PAYLOAD))
@@ -189,6 +200,8 @@ class SecurityConfigurationTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void shouldAllowStaffRegistrationForAdminRole() throws Exception {
+        when(authService.registerStaff(any(), any())).thenReturn(new StaffId(UUID.randomUUID()));
+
         mockMvc.perform(post(API_URL + "auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_STAFF_PAYLOAD))
