@@ -12,9 +12,17 @@ import java.util.Map;
 public interface UserProfileRepository {
     ResidentDto findByResidentId(@NonNull ResidentId residentId);
 
-    Map<ResidentId, ResidentDto> findByResidentIds(@NonNull List<ResidentId> residentId);
+    Map<ResidentId, ResidentDto> findByResidentIds(@NonNull List<ResidentId> residentIds);
 
     StaffDto findByStaffId(@NonNull StaffId staffId);
 
     Map<StaffId, StaffDto> findByStaffIds(@NonNull List<StaffId> staffIds);
+
+    ResidentDto registerResident(@NonNull ResidentDto residentDto);
+
+    StaffDto registerStaff(@NonNull StaffDto staffDto);
+
+    ResidentDto updateResident(@NonNull ResidentDto residentDto);
+
+    StaffDto updateStaff(@NonNull StaffDto staffDto);
 }
