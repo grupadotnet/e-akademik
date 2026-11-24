@@ -29,7 +29,7 @@ import pl.grupanet.eakademik.register.*;
 class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
-    private final UserRegistrationRepository  userRegistrationRepository;
+    private final UserRegistrationService userRegistrationRepository;
 
     @Operation(
             summary = "Register a resident (STAFF only)",

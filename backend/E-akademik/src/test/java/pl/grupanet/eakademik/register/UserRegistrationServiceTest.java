@@ -28,13 +28,13 @@ class UserRegistrationServiceTest {
 
     private UserProfileRepository userProfileRepository;
     private AuthService authService;
-    private UserRegistrationService userRegistrationService;
+    private AppUserRegistrationService userRegistrationService;
 
     @BeforeEach
     void setUp() {
         userProfileRepository = mock(UserProfileRepository.class);
         authService = mock(AuthService.class);
-        userRegistrationService = new UserRegistrationService(userProfileRepository, authService);
+        userRegistrationService = new AppUserRegistrationService(userProfileRepository, authService);
     }
 
     @Test
