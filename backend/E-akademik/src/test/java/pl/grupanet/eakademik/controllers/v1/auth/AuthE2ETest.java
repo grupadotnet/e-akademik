@@ -25,6 +25,8 @@ import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
 import pl.grupanet.eakademik.controllers.ApiVersions;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.register.RegisterResidentRequest;
+import pl.grupanet.eakademik.register.RegisterStaffRequest;
 import pl.grupanet.eakademik.user.UserProfileRepository;
 import pl.grupanet.eakademik.user.dto.ResidentDto;
 

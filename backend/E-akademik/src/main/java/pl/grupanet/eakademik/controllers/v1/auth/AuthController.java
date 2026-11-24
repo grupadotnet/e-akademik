@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.register.*;
 
 @RestController
 @RequestMapping( "auth")
@@ -28,7 +29,7 @@ import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
-    private final UserRegistrationService userRegistrationService;
+    private final UserRegistrationRepository  userRegistrationRepository;
 
     @Operation(
             summary = "Register a resident (STAFF only)",
@@ -48,7 +49,7 @@ class AuthController {
 
         RoomNumber roomNumber = new RoomNumber(registerResidentRequest.roomNumber());
 
-        userRegistrationService.registerResident(data.email, data.password, data.name, data.surname, data.dormitoryId, roomNumber);
+        userRegistrationRepository.registerResident(data.email, data.password, data.name, data.surname, data.dormitoryId, roomNumber);
 
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -72,7 +73,7 @@ class AuthController {
 
         RegistrationData data = returnRegistrationData(registerStaffRequest);
 
-        userRegistrationService.registerStaff(data.email, data.password, data.name, data.surname, data.dormitoryId);
+        userRegistrationRepository.registerStaff(data.email, data.password, data.name, data.surname, data.dormitoryId);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

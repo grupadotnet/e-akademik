@@ -1,4 +1,4 @@
-package pl.grupanet.eakademik.controllers.v1.auth;
+package pl.grupanet.eakademik.register;
 
 import org.commons.DormitoryId;
 import org.commons.Email;
@@ -73,7 +73,7 @@ class UserRegistrationServiceTest {
     }
 
     @Test
-    void shouldNotCreateProfileWhenAuthRegistrationFails() {
+    void shouldNotCreateResidentProfileWhenAuthRegistrationFails() {
         Email email = new Email("duplicate@example.com");
         Password password = new Password("secret123");
         Name name = new Name("Jan");
@@ -88,5 +88,61 @@ class UserRegistrationServiceTest {
                 () -> userRegistrationService.registerResident(email, password, name, surname, dormitoryId, roomNumber)
         );
         verify(userProfileRepository, never()).registerResident(any());
+    }
+
+    @Test
+    void shouldNotCreateStaffProfileWhenAuthRegistrationFails() {
+        Email email = new Email("duplicate@staff.example.com");
+        Password password = new Password("secret123");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
+        DormitoryId dormitoryId = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Ds-3 Bartek"));
+
+        when(authService.registerStaff(email, password)).thenThrow(new IllegalArgumentException("Duplicate email"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userRegistrationService.registerStaff(email, password, name, surname, dormitoryId)
+        );
+        verify(userProfileRepository, never()).registerStaff(any());
+    }
+
+    @Test
+    void shouldPropagateExceptionWhenResidentProfileCreationFails() {
+        Email email = new Email("jan@example.com");
+        Password password = new Password("secret123");
+        Name name = new Name("Jan");
+        Name surname = new Name("Kowalski");
+        DormitoryId dormitoryId = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Nieistniejacy Akademik"));
+        RoomNumber roomNumber = new RoomNumber("204B");
+        ResidentId generatedId = new ResidentId(UUID.randomUUID());
+
+        when(authService.registerResident(email, password)).thenReturn(generatedId);
+        when(userProfileRepository.registerResident(new ResidentDto(generatedId, name, surname, dormitoryId, roomNumber)))
+                .thenThrow(new IllegalArgumentException("Dormitory does not exist"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userRegistrationService.registerResident(email, password, name, surname, dormitoryId, roomNumber)
+        );
+    }
+
+    @Test
+    void shouldPropagateExceptionWhenStaffProfileCreationFails() {
+        Email email = new Email("anna@example.com");
+        Password password = new Password("secret123");
+        Name name = new Name("Anna");
+        Name surname = new Name("Nowak");
+        DormitoryId dormitoryId = new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Nieistniejacy Akademik"));
+        StaffId generatedId = new StaffId(UUID.randomUUID());
+
+        when(authService.registerStaff(email, password)).thenReturn(generatedId);
+        when(userProfileRepository.registerStaff(new StaffDto(generatedId, name, surname, dormitoryId)))
+                .thenThrow(new IllegalArgumentException("Dormitory does not exist"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userRegistrationService.registerStaff(email, password, name, surname, dormitoryId)
+        );
     }
 }

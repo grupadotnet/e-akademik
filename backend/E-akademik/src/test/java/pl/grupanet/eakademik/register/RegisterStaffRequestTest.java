@@ -1,4 +1,4 @@
-package pl.grupanet.eakademik.controllers.v1.auth;
+package pl.grupanet.eakademik.register;
 
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;

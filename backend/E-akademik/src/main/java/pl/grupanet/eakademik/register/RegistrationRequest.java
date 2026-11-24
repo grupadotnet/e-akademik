@@ -1,8 +1,8 @@
-package pl.grupanet.eakademik.controllers.v1.auth;
+package pl.grupanet.eakademik.register;
 
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 
-interface RegistrationRequest {
+public interface RegistrationRequest {
     UniversityNames universityName();
     String dormitoryName();
     String name();
