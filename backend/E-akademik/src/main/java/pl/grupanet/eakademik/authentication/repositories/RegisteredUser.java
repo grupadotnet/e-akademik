@@ -1,9 +1,9 @@
 package pl.grupanet.eakademik.authentication.repositories;
 
 import lombok.NonNull;
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
+import pl.grupanet.eakademik.authentication.Email;
 
 public record RegisteredUser(UserId id, Email email, String passwordHash, Role role) {
     public RegisteredUser(

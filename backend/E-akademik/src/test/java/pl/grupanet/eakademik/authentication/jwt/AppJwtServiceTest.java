@@ -1,10 +1,10 @@
 package pl.grupanet.eakademik.authentication.jwt;
 
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.grupanet.eakademik.authentication.Email;
 
 import static org.junit.jupiter.api.Assertions.*;
 

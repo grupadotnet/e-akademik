@@ -1,11 +1,11 @@
 package pl.grupanet.eakademik.authentication.security;
 
-import org.commons.Email;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import pl.grupanet.eakademik.authentication.Email;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
 
 import java.util.List;

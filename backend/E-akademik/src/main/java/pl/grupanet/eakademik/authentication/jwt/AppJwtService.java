@@ -5,9 +5,9 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
+import pl.grupanet.eakademik.authentication.Email;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
