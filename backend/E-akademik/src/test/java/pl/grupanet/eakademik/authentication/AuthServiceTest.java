@@ -3,6 +3,8 @@ package pl.grupanet.eakademik.authentication;
 import org.commons.Email;
 import org.commons.Password;
 import org.commons.Role;
+import org.commons.users.ResidentId;
+import org.commons.users.StaffId;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,13 +53,15 @@ class AuthServiceTest {
         Password password = new Password("secret123");
         when(userRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(userRepository.save(any(RegisteredUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        authService.registerResident(email, password);
+        ResidentId returnedId = authService.registerResident(email, password);
 
         ArgumentCaptor<RegisteredUser> userCaptor = ArgumentCaptor.forClass(RegisteredUser.class);
         verify(userRepository).save(userCaptor.capture());
 
         RegisteredUser saved = userCaptor.getValue();
+        assertEquals(saved.id().getIdAsUUID(), returnedId.getIdAsUUID());
         assertEquals(new Email("jan@example.com"), saved.email());
         assertEquals("encoded-secret", saved.passwordHash());
         assertEquals(Role.RESIDENT, saved.role());
@@ -69,13 +73,15 @@ class AuthServiceTest {
         Password password = new Password("secret123");
         when(userRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(userRepository.save(any(RegisteredUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        authService.registerStaff(email, password);
+        StaffId returnedId = authService.registerStaff(email, password);
 
         ArgumentCaptor<RegisteredUser> userCaptor = ArgumentCaptor.forClass(RegisteredUser.class);
         verify(userRepository).save(userCaptor.capture());
 
         RegisteredUser saved = userCaptor.getValue();
+        assertEquals(saved.id().getIdAsUUID(), returnedId.getIdAsUUID());
         assertEquals(new Email("staff@example.com"), saved.email());
         assertEquals("encoded-secret", saved.passwordHash());
         assertEquals(Role.STAFF, saved.role());

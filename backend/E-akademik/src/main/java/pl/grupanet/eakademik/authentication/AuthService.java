@@ -2,9 +2,11 @@ package pl.grupanet.eakademik.authentication;
 
 import org.commons.Email;
 import org.commons.Password;
+import org.commons.users.ResidentId;
+import org.commons.users.StaffId;
 
 public interface AuthService {
-    void registerResident(Email email, Password password);
-    void registerStaff(Email email, Password password);
+    ResidentId registerResident(Email email, Password password);
+    StaffId registerStaff(Email email, Password password);
     String loginUser(Email email, Password password);
 }

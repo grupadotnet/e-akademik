@@ -9,8 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.commons.Email;
-import org.commons.Password;
+import org.commons.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.register.*;
 
 @RestController
 @RequestMapping( "auth")
@@ -28,6 +29,7 @@ import pl.grupanet.eakademik.authentication.CookieService;
 class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
+    private final UserRegistrationService userRegistrationRepository;
 
     @Operation(
             summary = "Register a resident (STAFF only)",
@@ -43,10 +45,13 @@ class AuthController {
     })
     @PostMapping("/register/resident")
     ResponseEntity<Void> registerResident(@RequestBody RegisterResidentRequest registerResidentRequest) {
-        Email email = new Email(registerResidentRequest.email());
-        Password password = new Password(registerResidentRequest.password());
+        RegistrationData data = returnRegistrationData(registerResidentRequest);
 
-        authService.registerResident(email, password);
+        RoomNumber roomNumber = new RoomNumber(registerResidentRequest.roomNumber());
+
+        userRegistrationRepository.registerResident(data.email, data.password, data.name, data.surname, data.dormitoryId, roomNumber);
+
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -65,10 +70,11 @@ class AuthController {
     })
     @PostMapping("/register/staff")
     ResponseEntity<Void> registerStaff(@RequestBody RegisterStaffRequest registerStaffRequest) {
-        Email email = new Email(registerStaffRequest.email());
-        Password password = new Password(registerStaffRequest.password());
 
-        authService.registerStaff(email, password);
+        RegistrationData data = returnRegistrationData(registerStaffRequest);
+
+        userRegistrationRepository.registerStaff(data.email, data.password, data.name, data.surname, data.dormitoryId);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -114,5 +120,19 @@ class AuthController {
     ResponseEntity<Void> logout(HttpServletResponse httpServletResponse) {
         httpServletResponse.addCookie(cookieService.createJwtCookie(null, 0));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    private record RegistrationData(Email email, Password password, Name name, Name surname, DormitoryId dormitoryId) {}
+
+    private RegistrationData returnRegistrationData(RegistrationRequest registrationRequest) {
+        Email email = new Email(registrationRequest.email());
+        Password password = new Password(registrationRequest.password());
+        Name name = new Name(registrationRequest.name());
+        Name surname = new Name(registrationRequest.surname());
+        UniversityNames universityName = registrationRequest.universityName();
+        Name dormitoryName =  new Name(registrationRequest.dormitoryName());
+        DormitoryId dormitoryId = new DormitoryId(universityName, dormitoryName);
+
+        return new RegistrationData(email, password, name, surname, dormitoryId);
     }
 }
