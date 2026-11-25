@@ -14,7 +14,7 @@ export async function apiFetch(
   const headers: Record<string, string> = {};
 
   const token = await getToken();
-  if (token) headers["Cookie"] = `jwt_token=${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
@@ -31,7 +31,7 @@ export type LoginResult =
   | { ok: true; token: string }
   | {
       ok: false;
-      reason: "bad_credentials" | "no_cookie" | "network" | "other";
+      reason: "bad_credentials" | "no_token" | "network" | "other";
     };
 
 export async function login(
@@ -39,25 +39,25 @@ export async function login(
   password: string,
 ): Promise<LoginResult> {
   try {
-    const res = await apiFetch("/api/auth/login", {
+    const res = await apiFetch("/api/v1/auth/login", {
       method: "POST",
       body: { email, password },
       signal: AbortSignal.timeout(8000),
     });
 
     if (res.status === 401) return { ok: false, reason: "bad_credentials" };
-    if (res.status !== 204) return { ok: false, reason: "other" };
+    if (!res.ok) return { ok: false, reason: "other" };
 
-    const header = res.headers.get("set-cookie");
-    const match = header?.match(/jwt_token=([^;]+)/);
-    if (!match) return { ok: false, reason: "no_cookie" };
-
-    return { ok: true, token: match[1] };
+    const data = (await res.json()) as { token?: unknown };
+    if (typeof data.token !== "string" || data.token.length === 0) {
+      return { ok: false, reason: "no_token" };
+    }
+    return { ok: true, token: data.token };
   } catch {
     return { ok: false, reason: "network" };
   }
 }
 
 export async function logout() {
-  return apiFetch("/api/auth/logout", { method: "POST" });
+  return apiFetch("/api/v1/auth/logout", { method: "POST" });
 }

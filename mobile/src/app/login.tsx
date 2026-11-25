@@ -6,7 +6,7 @@ import { useSession } from "@/api/SessionProvider";
 const messages = {
   bad_credentials: "Wrong email or password",
   network: "Cannot reach the server",
-  no_cookie: "Could not log in",
+  no_token: "Could not log in",
   other: "Could not log in",
 } as const;
 
