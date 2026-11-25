@@ -8,7 +8,10 @@ export default function StartScreen() {
     <View style={styles.screen}>
       <Text style={styles.title}>e-akademik</Text>
       <Pressable
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
         onPress={() => router.push("/login")}
       >
         <Text style={styles.buttonText}>Log in</Text>
