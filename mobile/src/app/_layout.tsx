@@ -5,7 +5,16 @@ import { StyleSheet } from "react-native";
 function RootStack() {
   const { token } = useSession();
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: "#0F2744" },
+        headerTintColor: "#FFFFFF",
+        headerTitleAlign: "center",
+        headerTitleStyle: styles.text,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: "#0F2744" },
+      }}
+    >
       <Stack.Protected guard={!!token}>
         <Stack.Screen name="home" />
       </Stack.Protected>
@@ -19,7 +28,8 @@ function RootStack() {
           name="login"
           options={{
             title: "Log in",
-            headerTitleStyle: styles.text,
+            headerTransparent: true,
+            headerStyle: { backgroundColor: "transparent" },
             headerBackButtonDisplayMode: "minimal",
           }}
         />
