@@ -18,7 +18,9 @@ export async function login(
       signal: AbortSignal.timeout(8000),
     });
 
-    if (res.status === 401) return { ok: false, reason: "bad_credentials" };
+    if (res.status === 400 || res.status === 401) {
+      return { ok: false, reason: "bad_credentials" };
+    }
     if (!res.ok) return { ok: false, reason: "other" };
 
     const data = (await res.json()) as { token?: unknown };
