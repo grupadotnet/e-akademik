@@ -243,12 +243,16 @@ class UserControllerE2ETest {
     }
 
     private HttpHeaders loginAndExtractHeaders(String email, String password) {
-        ResponseEntity<Void> loginResponse = restTemplate.postForEntity(
+        ResponseEntity<Map<String, String>> loginResponse = restTemplate.exchange(
                 AUTH_API_URL + "/login",
-                Map.of("email", email, "password", password),
-                Void.class
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of("email", email, "password", password)),
+                new ParameterizedTypeReference<>() {}
         );
-        assertEquals(HttpStatus.NO_CONTENT, loginResponse.getStatusCode());
+        assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+        assertNotNull(loginResponse.getBody());
+        assertNotNull(loginResponse.getBody().get("token"));
+        assertFalse(loginResponse.getBody().get("token").isBlank());
 
         List<String> cookies = loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
         assertNotNull(cookies);
