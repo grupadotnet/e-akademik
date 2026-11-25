@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { login } from "@/features/user/user-api";
 import { useSession } from "@/features/user/providers/session-provider";
+import { loginSchema } from "../user-schema";
+import { z } from "zod/mini";
 
 const messages = {
   bad_credentials: "Wrong email or password",
@@ -14,26 +16,41 @@ export function LoginForm() {
   const { signIn } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldsErrors, setFieldsErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
+  const clearErrors = () => {
+    setFieldsErrors({});
+    setError("");
+  };
+
   const onLogin = async () => {
-    if (!email.trim() || !password) {
-      setError("Enter an email and password");
+    if (pending) return;
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      const flat = z.flattenError(parsed.error);
+      setFieldsErrors({
+        email: flat.fieldErrors.email?.[0],
+        password: flat.fieldErrors.password?.[0],
+      });
       return;
     }
 
     setPending(true);
-    setError("");
+    clearErrors();
     try {
-      const result = await login(email.trim(), password);
+      const result = await login(parsed.data.email, parsed.data.password);
       if (!result.ok) {
         setError(messages[result.reason]);
         return;
       }
       await signIn(result.token);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not log in");
+    } catch {
+      setError(messages.other);
     } finally {
       setPending(false);
     }
@@ -43,7 +60,10 @@ export function LoginForm() {
     <View style={styles.screen}>
       <TextInput
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(v) => {
+          setEmail(v);
+          clearErrors();
+        }}
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
@@ -51,15 +71,20 @@ export function LoginForm() {
         placeholderTextColor="#8aa0bb"
         style={styles.input}
       />
+
       <TextInput
         value={password}
-        onChangeText={setPassword}
-        autoComplete="password"
+        onChangeText={(v) => {
+          setPassword(v);
+          clearErrors();
+        }}
+        autoComplete="current-password"
         secureTextEntry
         placeholder="Password"
         placeholderTextColor="#8aa0bb"
         style={styles.input}
       />
+
       <Pressable
         disabled={pending}
         onPress={onLogin}
@@ -73,7 +98,10 @@ export function LoginForm() {
           {pending ? "Logging in..." : "Log in"}
         </Text>
       </Pressable>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <Text style={styles.error} accessibilityRole="alert">
+        {fieldsErrors.email ?? fieldsErrors.password ?? error}
+      </Text>
     </View>
   );
 }
@@ -111,5 +139,6 @@ const styles = StyleSheet.create({
   error: {
     color: "#ffb4b4",
     textAlign: "center",
+    minHeight: 20,
   },
 });
