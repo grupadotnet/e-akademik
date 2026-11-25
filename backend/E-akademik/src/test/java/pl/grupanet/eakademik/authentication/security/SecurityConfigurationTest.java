@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -136,13 +137,15 @@ class SecurityConfigurationTest {
     @Test
     @WithAnonymousUser
     void shouldAllowAnonymousLoginWithoutCsrfToken() throws Exception {
+        when(authService.loginUser(any(), any())).thenReturn("dummy-token");
         when(cookieService.createJwtCookie(any(), anyInt()))
                 .thenReturn(new Cookie("jwt_token", "dummy"));
 
         mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_LOGIN_PAYLOAD))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("dummy-token"));
     }
 
     @Test

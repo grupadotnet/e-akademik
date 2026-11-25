@@ -1,10 +1,15 @@
 package pl.grupanet.eakademik.authentication.jwt;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,6 +57,38 @@ class AppJwtServiceTest {
         String expiredToken = expiredJwtService.generateToken(userId, email, Role.RESIDENT);
 
         assertFalse(jwtService.isTokenValid(expiredToken, email));
+    }
+
+    @Test
+    void shouldGenerateTokenAndExtractUserId() {
+        String token = jwtService.generateToken(userId, email, Role.RESIDENT);
+
+        assertEquals(userId, jwtService.extractUserId(token));
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenUserIdClaimIsMissing() {
+        String tokenWithoutUserId = Jwts.builder()
+                .subject(email.toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(TEST_SECRET)))
+                .compact();
+
+        assertThrows(IllegalArgumentException.class, () -> jwtService.extractUserId(tokenWithoutUserId));
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionWhenUserIdClaimIsNotValidUuid() {
+        String tokenWithInvalidUserId = Jwts.builder()
+                .subject(email.toString())
+                .claim("userId", "not-a-uuid")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(TEST_SECRET)))
+                .compact();
+
+        assertThrows(IllegalArgumentException.class, () -> jwtService.extractUserId(tokenWithInvalidUserId));
     }
 
     @Test
