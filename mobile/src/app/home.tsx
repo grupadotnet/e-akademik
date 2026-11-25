@@ -1,5 +1,5 @@
-import HomeScreen from "@/screens/home-screen";
+import { SignedInHome } from "@/components/signed-in-home";
 
 export default function Home() {
-  return <HomeScreen />;
+  return <SignedInHome />;
 }

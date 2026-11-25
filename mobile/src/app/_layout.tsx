@@ -1,4 +1,4 @@
-import { SessionProvider, useSession } from "@/api/SessionProvider";
+import { SessionProvider, useSession } from "@/features/user/providers/session-provider";
 import { Stack } from "expo-router";
 import { StyleSheet } from "react-native";
 
