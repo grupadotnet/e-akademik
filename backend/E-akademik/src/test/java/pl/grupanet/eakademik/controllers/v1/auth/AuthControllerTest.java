@@ -1,14 +1,20 @@
-package pl.grupanet.eakademik.authentication;
+package pl.grupanet.eakademik.controllers.v1.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import org.commons.DormitoryId;
 import org.commons.Email;
+import org.commons.Name;
 import org.commons.Role;
+import org.commons.RoomNumber;
+import org.commons.users.ResidentId;
+import org.commons.users.StaffId;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -17,16 +23,27 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
+import pl.grupanet.eakademik.controllers.ApiVersions;
+import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
+import pl.grupanet.eakademik.register.RegisterResidentRequest;
+import pl.grupanet.eakademik.register.RegisterStaffRequest;
+import pl.grupanet.eakademik.user.UserProfileRepository;
+import pl.grupanet.eakademik.user.dto.ResidentDto;
+import pl.grupanet.eakademik.user.dto.StaffDto;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class AuthControllerTest {
+    private static final String API_URL = ApiVersions.V1.getPath();
 
     @Autowired
     private MockMvc mockMvc;
@@ -38,76 +55,90 @@ class AuthControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private UserProfileRepository userProfileRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldRegisterResidentAndReturnCreated() throws Exception {
         RegisterResidentRequest request = new RegisterResidentRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
                 "111B",
-                "Jan Kowalski",
+                "Jan",
+                "Kowalski",
                 "new.resident@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(API_URL + "auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
-        assertTrue(userRepository.existsByEmail(new Email("new.resident@example.com")));
+        RegisteredUser savedAuth = userRepository.findByEmail(new Email("new.resident@example.com")).orElseThrow();
+        ResidentDto savedProfile = userProfileRepository.findByResidentId(new ResidentId(savedAuth.id().getIdAsUUID()));
+        assertEquals(new Name("Jan"), savedProfile.name());
+        assertEquals(new Name("Kowalski"), savedProfile.surname());
+        assertEquals(new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Ds-3 Bartek")), savedProfile.dormitoryId());
+        assertEquals(new RoomNumber("111B"), savedProfile.roomNumber());
     }
 
     @Test
     void shouldForbidStaffRegistrationWithoutAdminRole() throws Exception {
         RegisterStaffRequest request = new RegisterStaffRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
-                "Anna Nowak",
+                "Anna",
+                "Nowak",
                 "unauth.staff@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldForbidStaffRegistrationForResidentRole() throws Exception {
         RegisterResidentRequest residentRequest = new RegisterResidentRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
                 "102A",
-                "Jan Kowalski",
+                "Jan",
+                "Kowalski",
                 "resident.role@example.com",
                 "password123"
         );
-        mockMvc.perform(post("/api/auth/register/resident")
+        mockMvc.perform(post(API_URL + "auth/register/resident")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(residentRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("resident.role@example.com", "password123"))))
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andReturn();
 
         Cookie residentCookie = loginResult.getResponse().getCookie("jwt_token");
         assertNotNull(residentCookie);
 
         RegisterStaffRequest staffRequest = new RegisterStaffRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
-                "Anna Nowak",
+                "Anna",
+                "Nowak",
                 "resident.tries.staff@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .cookie(residentCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
@@ -118,41 +149,49 @@ class AuthControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldRegisterStaffWhenAdminIsAuthenticated() throws Exception {
         RegisterStaffRequest request = new RegisterStaffRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
-                "Anna Nowak",
+                "Anna",
+                "Nowak",
                 "new.staff@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
-        assertTrue(userRepository.existsByEmail(new Email("new.staff@example.com")));
+        RegisteredUser savedAuth = userRepository.findByEmail(new Email("new.staff@example.com")).orElseThrow();
+        StaffDto savedProfile = userProfileRepository.findByStaffId(new StaffId(savedAuth.id().getIdAsUUID()));
+        assertEquals(new Name("Anna"), savedProfile.name());
+        assertEquals(new Name("Nowak"), savedProfile.surname());
+        assertEquals(new DormitoryId(UniversityNames.POLITECHNIKA_KRAKOWSKA, new Name("Ds-3 Bartek")), savedProfile.dormitoryId());
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void shouldLoginAndSetHttpOnlyJwtCookie() throws Exception {
         RegisterResidentRequest registerRequest = new RegisterResidentRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
                 "102A",
-                "Jan Kowalski",
+                "Jan",
+                "Kowalski",
                 "login.user@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/resident")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+        mockMvc.perform(post(API_URL + "auth/register/resident")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("login.user@example.com", "password123"))))
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(cookie().exists("jwt_token"))
                 .andExpect(cookie().httpOnly("jwt_token", true))
                 .andReturn();
@@ -160,6 +199,12 @@ class AuthControllerTest {
         Cookie jwtCookie = result.getResponse().getCookie("jwt_token");
         assertNotNull(jwtCookie);
         assertEquals(60 * 60 * 24, jwtCookie.getMaxAge());
+
+        LoginResponse loginResponse = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                LoginResponse.class
+        );
+        assertEquals(jwtCookie.getValue(), loginResponse.token());
     }
 
     @Test
@@ -171,33 +216,75 @@ class AuthControllerTest {
                 Role.ADMIN
         ));
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post(API_URL + "auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("admin@example.com", "adminpass123"))))
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andReturn();
 
         Cookie jwtCookie = loginResult.getResponse().getCookie("jwt_token");
         assertNotNull(jwtCookie);
 
         RegisterStaffRequest staffRequest = new RegisterStaffRequest(
-                "Politechnika Krakowska",
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
                 "Ds-3 Bartek",
-                "Staff Member",
+                "Staff",
+                "Member",
                 "staff.by.cookie@example.com",
                 "password123"
         );
 
-        mockMvc.perform(post("/api/auth/register/staff")
+        mockMvc.perform(post(API_URL + "auth/register/staff")
                         .cookie(jwtCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(staffRequest)))
                 .andExpect(status().isCreated());
+
+        assertTrue(userRepository.existsByEmail(new Email("staff.by.cookie@example.com")));
+    }
+
+    @Test
+    void shouldAuthenticateAdminViaBearerHeaderAndAllowStaffRegistration() throws Exception {
+        userRepository.save(new RegisteredUser(
+                UserId.generate(),
+                new Email("admin.bearer@example.com"),
+                passwordEncoder.encode("adminpass123"),
+                Role.ADMIN
+        ));
+
+        MvcResult loginResult = mockMvc.perform(post(API_URL + "auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest("admin.bearer@example.com", "adminpass123"))))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        LoginResponse loginResponse = objectMapper.readValue(
+                loginResult.getResponse().getContentAsString(),
+                LoginResponse.class
+        );
+        assertNotNull(loginResponse.token());
+
+        RegisterStaffRequest staffRequest = new RegisterStaffRequest(
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
+                "Ds-3 Bartek",
+                "Staff",
+                "Bearer",
+                "staff.by.bearer@example.com",
+                "password123"
+        );
+
+        mockMvc.perform(post(API_URL + "auth/register/staff")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginResponse.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(staffRequest)))
+                .andExpect(status().isCreated());
+
+        assertTrue(userRepository.existsByEmail(new Email("staff.by.bearer@example.com")));
     }
 
     @Test
     void shouldClearJwtCookieOnLogout() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post(API_URL + "auth/logout"))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().exists("jwt_token"))
                 .andExpect(cookie().maxAge("jwt_token", 0))
