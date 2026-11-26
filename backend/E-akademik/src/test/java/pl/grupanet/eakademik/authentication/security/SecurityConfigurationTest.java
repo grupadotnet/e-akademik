@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
 import pl.grupanet.eakademik.controllers.ApiVersions;
+import pl.grupanet.eakademik.register.UserRegistrationService;
 import pl.grupanet.eakademik.user.UserProfileRepository;
 
 import java.util.List;
@@ -100,6 +101,9 @@ class SecurityConfigurationTest {
 
     @MockitoBean
     private UserProfileRepository userProfileRepository;
+
+    @MockitoBean
+    private UserRegistrationService userRegistrationService;
 
     // --- 1. Security beans and filter chain order ---
 
