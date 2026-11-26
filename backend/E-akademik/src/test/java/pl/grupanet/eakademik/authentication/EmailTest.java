@@ -1,5 +1,6 @@
-package org.commons;
+package pl.grupanet.eakademik.authentication;
 
+import org.commons.Name;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

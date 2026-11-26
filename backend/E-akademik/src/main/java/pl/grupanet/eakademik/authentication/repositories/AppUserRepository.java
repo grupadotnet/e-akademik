@@ -1,8 +1,8 @@
 package pl.grupanet.eakademik.authentication.repositories;
 
 import lombok.RequiredArgsConstructor;
-import org.commons.Email;
 import org.commons.users.UserId;
+import pl.grupanet.eakademik.authentication.Email;
 
 import java.util.Optional;
 import java.util.UUID;

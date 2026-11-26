@@ -4,7 +4,6 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
-import org.commons.Email;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import pl.grupanet.eakademik.authentication.Email;
 import pl.grupanet.eakademik.authentication.jwt.TokenService;
 
 import java.io.IOException;

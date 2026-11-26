@@ -1,6 +1,7 @@
-package org.commons;
+package pl.grupanet.eakademik.authentication;
 
 import lombok.NonNull;
+import org.commons.Name;
 
 public class Password extends Name {
 

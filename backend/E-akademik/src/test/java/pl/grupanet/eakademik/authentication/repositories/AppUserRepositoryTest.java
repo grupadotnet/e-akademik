@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.authentication.repositories;
 
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
 import org.hibernate.exception.ConstraintViolationException;
@@ -9,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import pl.grupanet.eakademik.authentication.Email;
 
 import java.util.Optional;
 
