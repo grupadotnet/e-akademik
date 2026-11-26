@@ -1,7 +1,5 @@
 package pl.grupanet.eakademik.authentication;
 
-import org.commons.Email;
-import org.commons.Password;
 import org.commons.Role;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;

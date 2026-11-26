@@ -6,6 +6,8 @@ import org.commons.users.StaffId;
 import lombok.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import pl.grupanet.eakademik.authentication.AuthService;
+import pl.grupanet.eakademik.authentication.Email;
+import pl.grupanet.eakademik.authentication.Password;
 import pl.grupanet.eakademik.user.UserProfileRepository;
 import pl.grupanet.eakademik.user.dto.ResidentDto;
 import pl.grupanet.eakademik.user.dto.StaffDto;
