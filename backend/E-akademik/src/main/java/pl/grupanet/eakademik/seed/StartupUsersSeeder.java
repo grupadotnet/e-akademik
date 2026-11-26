@@ -1,6 +1,8 @@
 package pl.grupanet.eakademik.seed;
 
 import org.commons.*;
+import pl.grupanet.eakademik.authentication.Email;
+import pl.grupanet.eakademik.authentication.Password;
 
 import org.springframework.boot.CommandLineRunner;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
