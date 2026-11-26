@@ -1,6 +1,5 @@
 package pl.grupanet.eakademik.controllers.v1.user;
 
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import pl.grupanet.eakademik.authentication.Email;
 import pl.grupanet.eakademik.authentication.repositories.RegisteredUser;
 import pl.grupanet.eakademik.authentication.repositories.UserRepository;
 import pl.grupanet.eakademik.controllers.ApiVersions;

@@ -1,15 +1,15 @@
 package pl.grupanet.eakademik.register;
 
 import org.commons.DormitoryId;
-import org.commons.Email;
 import org.commons.Name;
-import org.commons.Password;
 import org.commons.RoomNumber;
 import org.commons.users.ResidentId;
 import org.commons.users.StaffId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.grupanet.eakademik.authentication.AuthService;
+import pl.grupanet.eakademik.authentication.Email;
+import pl.grupanet.eakademik.authentication.Password;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 import pl.grupanet.eakademik.user.UserProfileRepository;
 import pl.grupanet.eakademik.user.dto.ResidentDto;

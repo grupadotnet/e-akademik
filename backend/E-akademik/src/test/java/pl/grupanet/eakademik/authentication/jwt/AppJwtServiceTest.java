@@ -3,11 +3,11 @@ package pl.grupanet.eakademik.authentication.jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.commons.Email;
 import org.commons.Role;
 import org.commons.users.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.grupanet.eakademik.authentication.Email;
 
 import java.util.Date;
 

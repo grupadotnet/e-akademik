@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.grupanet.eakademik.authentication.AuthService;
 import pl.grupanet.eakademik.authentication.CookieService;
+import pl.grupanet.eakademik.authentication.Email;
+import pl.grupanet.eakademik.authentication.Password;
 import pl.grupanet.eakademik.dormitory.spec.pk.UniversityNames;
 import pl.grupanet.eakademik.register.*;
 
