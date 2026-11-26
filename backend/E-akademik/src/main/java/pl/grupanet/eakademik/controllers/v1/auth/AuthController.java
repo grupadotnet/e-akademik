@@ -82,14 +82,15 @@ class AuthController {
 
     @Operation(
             summary = "Authenticate user",
-            description = "Authenticates the user and stores the JWT token in an HttpOnly `jwt_token` cookie valid for 24 hours."
+            description = "Authenticates the user, returns the JWT token in the JSON response body, " +
+                    "and sets an HttpOnly `jwt_token` cookie valid for 24 hours."
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
-                    description = "Successfully authenticated — JWT token returned in the Set-Cookie header",
+                    responseCode = "200",
+                    description = "Successfully authenticated — JWT token returned in the JSON response body and Set-Cookie header",
                     headers = @Header(name = HttpHeaders.SET_COOKIE, description = "HttpOnly `jwt_token` cookie containing the JWT"),
-                    content = @Content
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid input data",
                     content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
@@ -97,13 +98,13 @@ class AuthController {
                     content = @Content(mediaType = "text/plain", schema = @Schema(example = "Invalid credentials")))
     })
     @PostMapping("/login")
-    ResponseEntity<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpServletResponse) {
+    ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpServletResponse) {
         Email email = new Email(loginRequest.email());
         Password password = new Password(loginRequest.password());
 
         String token = authService.loginUser(email, password);
         httpServletResponse.addCookie(cookieService.createJwtCookie(token, 60 * 60 * 24));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @Operation(

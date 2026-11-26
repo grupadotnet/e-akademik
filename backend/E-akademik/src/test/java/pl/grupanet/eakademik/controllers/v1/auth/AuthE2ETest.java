@@ -70,12 +70,15 @@ class AuthE2ETest {
                 Role.STAFF
         ));
 
-        ResponseEntity<Void> staffLoginResponse = restTemplate.postForEntity(
+        ResponseEntity<LoginResponse> staffLoginResponse = restTemplate.postForEntity(
                 API_URL + "auth/login",
                 new LoginRequest("staff.e2e@example.com", "staffpass123"),
-                Void.class
+                LoginResponse.class
         );
-        assertEquals(HttpStatus.NO_CONTENT, staffLoginResponse.getStatusCode());
+        assertEquals(HttpStatus.OK, staffLoginResponse.getStatusCode());
+        assertNotNull(staffLoginResponse.getBody());
+        assertNotNull(staffLoginResponse.getBody().token());
+        assertFalse(staffLoginResponse.getBody().token().isBlank());
         HttpHeaders staffAuthHeaders = extractAuthHeaders(staffLoginResponse);
 
         // Register resident as authenticated STAFF
@@ -109,12 +112,15 @@ class AuthE2ETest {
         assertEquals(new RoomNumber("204B"), registeredProfile.roomNumber());
 
         // Login as newly created RESIDENT
-        ResponseEntity<Void> loginResponse = restTemplate.postForEntity(
+        ResponseEntity<LoginResponse> loginResponse = restTemplate.postForEntity(
                 API_URL + "auth/login",
                 new LoginRequest("e2e@example.com", "password123"),
-                Void.class
+                LoginResponse.class
         );
-        assertEquals(HttpStatus.NO_CONTENT, loginResponse.getStatusCode());
+        assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+        assertNotNull(loginResponse.getBody());
+        assertNotNull(loginResponse.getBody().token());
+        assertFalse(loginResponse.getBody().token().isBlank());
         HttpHeaders residentAuthHeaders = extractAuthHeaders(loginResponse);
 
         // RESIDENT cannot access ADMIN-only staff registration endpoint -> 403 FORBIDDEN
@@ -153,12 +159,15 @@ class AuthE2ETest {
                 Role.STAFF
         ));
 
-        ResponseEntity<Void> staffLoginResponse = restTemplate.postForEntity(
+        ResponseEntity<LoginResponse> staffLoginResponse = restTemplate.postForEntity(
                 API_URL + "auth/login",
                 new LoginRequest("staff.rollback.e2e@example.com", "staffpass123"),
-                Void.class
+                LoginResponse.class
         );
-        assertEquals(HttpStatus.NO_CONTENT, staffLoginResponse.getStatusCode());
+        assertEquals(HttpStatus.OK, staffLoginResponse.getStatusCode());
+        assertNotNull(staffLoginResponse.getBody());
+        assertNotNull(staffLoginResponse.getBody().token());
+        assertFalse(staffLoginResponse.getBody().token().isBlank());
         HttpHeaders staffAuthHeaders = extractAuthHeaders(staffLoginResponse);
 
         RegisterResidentRequest invalidDormitoryRequest = new RegisterResidentRequest(
@@ -179,6 +188,48 @@ class AuthE2ETest {
         );
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertFalse(userRepository.existsByEmail(new Email("rollback.test@example.com")));
+    }
+
+    @Test
+    void shouldAuthenticateViaBearerHeaderReturnedInLoginBody() {
+        userRepository.save(new RegisteredUser(
+                UserId.generate(),
+                new Email("staff.bearer.e2e@example.com"),
+                passwordEncoder.encode("staffpass123"),
+                Role.STAFF
+        ));
+
+        ResponseEntity<LoginResponse> loginResponse = restTemplate.postForEntity(
+                API_URL + "auth/login",
+                new LoginRequest("staff.bearer.e2e@example.com", "staffpass123"),
+                LoginResponse.class
+        );
+        assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+        assertNotNull(loginResponse.getBody());
+        assertNotNull(loginResponse.getBody().token());
+        assertFalse(loginResponse.getBody().token().isBlank());
+
+        HttpHeaders bearerHeaders = new HttpHeaders();
+        bearerHeaders.setBearerAuth(loginResponse.getBody().token());
+
+        RegisterResidentRequest registerRequest = new RegisterResidentRequest(
+                UniversityNames.POLITECHNIKA_KRAKOWSKA,
+                "Ds-3 Bartek",
+                "305C",
+                "Piotr",
+                "Wisniewski",
+                "bearer.resident.e2e@example.com",
+                "password123"
+        );
+
+        ResponseEntity<Void> registerResponse = restTemplate.exchange(
+                API_URL + "auth/register/resident",
+                HttpMethod.POST,
+                new HttpEntity<>(registerRequest, bearerHeaders),
+                Void.class
+        );
+        assertEquals(HttpStatus.CREATED, registerResponse.getStatusCode());
+        assertTrue(userRepository.existsByEmail(new Email("bearer.resident.e2e@example.com")));
     }
 
     private HttpHeaders extractAuthHeaders(ResponseEntity<?> response) {

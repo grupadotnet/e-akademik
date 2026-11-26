@@ -7,5 +7,6 @@ import pl.grupanet.eakademik.authentication.Email;
 public interface TokenService {
     String generateToken(UserId userId, Email email, Role role);
     Email extractEmail(String token);
+    UserId extractUserId(String token);
     boolean isTokenValid(String token, Email expectedEmail);
 }

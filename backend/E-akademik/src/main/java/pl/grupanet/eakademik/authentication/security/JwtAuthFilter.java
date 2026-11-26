@@ -7,6 +7,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.commons.users.UserId;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,29 +34,19 @@ class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Cookie[] cookies = request.getCookies();
+        String authorizationToken = extractToken(request);
 
-        String authorizationToken = null;
-
-        if(cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (Objects.equals(cookie.getName(), "jwt_token")) {
-                    authorizationToken = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (authorizationToken != null) {
+        if (authorizationToken != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 Email email = tokenService.extractEmail(authorizationToken);
+                UserId userId = tokenService.extractUserId(authorizationToken);
 
-                if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if(email != null && userId != null) {
                     UserDetails user = userDetailsService.loadUserByUsername(email.toString());
 
                     if(tokenService.isTokenValid(authorizationToken, email)) {
                         SecurityContextHolder.getContext().setAuthentication(
-                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
+                                new UsernamePasswordAuthenticationToken(userId, null, user.getAuthorities())
                         );
                     }
                 }
@@ -64,5 +56,28 @@ class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractToken(HttpServletRequest request) {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String authorizationToken = null;
+
+        if(authHeader != null &&  authHeader.startsWith("Bearer ")) {
+            String normalizedToken = authHeader.substring(7).trim();
+            if(!normalizedToken.isBlank()) {
+                return normalizedToken;
+            }
+        }
+        Cookie[] cookies = request.getCookies();
+
+        if(cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (Objects.equals(cookie.getName(), "jwt_token")) {
+                    authorizationToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        return authorizationToken;
     }
 }

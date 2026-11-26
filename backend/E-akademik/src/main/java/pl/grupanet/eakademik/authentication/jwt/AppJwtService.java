@@ -11,6 +11,7 @@ import pl.grupanet.eakademik.authentication.Email;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 class AppJwtService implements TokenService {
 
@@ -37,6 +38,13 @@ class AppJwtService implements TokenService {
     @Override
     public Email extractEmail(String token) {
         return new Email(extractAllClaims(token).getSubject());
+    }
+
+    @Override
+    public UserId extractUserId(String token) {
+        String rawId = extractAllClaims(token).get("userId", String.class);
+        if (rawId == null) throw new IllegalArgumentException("Invalid token");
+        return new UserId(UUID.fromString(rawId));
     }
 
     @Override
