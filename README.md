@@ -23,17 +23,8 @@ Dormitory management platform developed by **Grupa .NET** at Cracow University o
 ```text
 e-akademik/
 ├── .github/workflows/       # GitHub Actions CI pipelines (backend & mobile)
-├── backend/E-akademik/      # Spring Boot 3.5 REST API (Java 21)
-│   ├── src/main/java/
-│   │   ├── org/commons/                 # Shared domain value objects (UserId, Name, RoomNumber, TimeSlot, Role)
-│   │   └── pl/grupanet/eakademik/       # Application modules (authentication, register, user, dormitory, reservation, controllers)
-│   ├── src/test/java/                   # Unit tests & Testcontainers PostgreSQL E2E tests
-│   ├── Dockerfile                       # Multi-stage Docker build (Maven -> Eclipse Temurin 21 JRE)
-│   ├── docker-compose.yml               # Backend + PostgreSQL 16 Compose stack
-│   └── .env.example                     # Environment variables template
-└── mobile/                  # Expo / React Native mobile app (TypeScript)
-    ├── src/app/                         # Expo Router file-based routes
-    └── src/screens/                     # UI screens & component tests
+├── backend/E-akademik/      # Spring Boot REST API, tests, Docker & Compose setup
+└── mobile/                  # Expo / React Native mobile application
 ```
 
 ## Getting Started
@@ -105,26 +96,14 @@ npm run ios       # Launch on iOS simulator / device (macOS)
 npm run web       # Launch in web browser
 ```
 
-## API Overview
+## API Documentation
 
-All REST endpoints are versioned under `/api/v1`:
+All REST endpoints are versioned under `/api/v1` and documented automatically via OpenAPI / Swagger:
 
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | Public | Authenticate user; returns JWT in JSON body and `HttpOnly` `jwt_token` cookie |
-| `POST` | `/api/v1/auth/logout` | Public | Clear the `jwt_token` session cookie |
-| `POST` | `/api/v1/auth/register/resident` | `STAFF` | Register a new dormitory resident account |
-| `POST` | `/api/v1/auth/register/staff` | `ADMIN` | Register a new dormitory staff account |
-| `GET` | `/api/v1/user/resident/{id}` | Authenticated | Get resident profile by UUID |
-| `GET` | `/api/v1/user/residents?ids=...` | Authenticated | Get multiple resident profiles by UUIDs |
-| `PUT` | `/api/v1/user/resident/{id}` | `STAFF`, `ADMIN` | Update resident profile and room assignment |
-| `GET` | `/api/v1/user/staff/{id}` | Authenticated | Get staff profile by UUID |
-| `GET` | `/api/v1/user/staff?ids=...` | Authenticated | Get multiple staff profiles by UUIDs |
-| `PUT` | `/api/v1/user/staff/{id}` | `ADMIN` | Update staff profile |
-
-Interactive documentation (when `SPRING_PROFILES_ACTIVE` is not `prod`):
 - **Swagger UI:** `http://localhost:8088/swagger-ui/index.html`
 - **OpenAPI JSON:** `http://localhost:8088/v3/api-docs`
+
+> **Note:** Swagger UI and OpenAPI docs are enabled by default in local development (`SPRING_PROFILES_ACTIVE=default`) and disabled in production (`SPRING_PROFILES_ACTIVE=prod`).
 
 ## Running Tests
 
@@ -150,7 +129,14 @@ npm test -- --watchAll=false
 
 # TypeScript type-check
 npx tsc --noEmit
-
-# Lint
-npm run lint
 ```
+
+## Project by
+
+Developed by **[Grupa .NET](https://github.com/grupadotnet)** (Cracow University of Technology / *Politechnika Krakowska*):
+
+- [@dawiddykacz](https://github.com/dawiddykacz)
+- [@JakubBizon](https://github.com/JakubBizon)
+- [@kubaMiczuu](https://github.com/kubaMiczuu)
+- [@musialek007](https://github.com/musialek007)
+- [@wiktorpasek](https://github.com/wiktorpasek)
