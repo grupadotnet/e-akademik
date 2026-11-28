@@ -1,17 +1,20 @@
-import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSession } from "@/features/user/providers/session-provider";
 
-export default function StartScreen() {
-  const router = useRouter();
+export function SignedInHome() {
+  const { signOut } = useSession();
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>e-akademik</Text>
+      <Text style={styles.title}>Logged in</Text>
       <Pressable
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-        onPress={() => router.push("/login")}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={signOut}
       >
-        <Text style={styles.buttonText}>Log in</Text>
+        <Text style={styles.buttonText}>Log out</Text>
       </Pressable>
     </View>
   );
